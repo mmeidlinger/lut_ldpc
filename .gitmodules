@@ -2,6 +2,3 @@
 	path = itpp
 	url = ssh://gitlab@dev.meidlinger.info/michael.meidlinger/itpp.git
 	branch = ldpc-lut
-[submodule "cpp-text-table"]
-	path = cpp-text-table
-	url = https://github.com/haarcuba/cpp-text-table
