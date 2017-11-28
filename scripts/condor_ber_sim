@@ -1,0 +1,24 @@
+#!/bin/sh
+
+params_file=$1
+nr_jobs=$2
+log_filename=$(basename -s .ini $params_file)
+base_dir=$(pwd)
+custom_name=_$(date +%Y-%m-%d_%H:%M)
+
+# edit all occurances of PARAMSFILE, NRJOBS, BASEDIR and LOGFILENAME in template.ber_sim.condor
+sed -r -e {s:PARAMSFILE:$params_file:} \
+       -e {s:NRJOBS:$nr_jobs:} \
+       -e {s:LOGFILENAME:$log_filename:} \
+       -e {s:BASEDIR:$base_dir:} \
+       -e {s#CUSTOMNAME#$custom_name#} \
+       template.ber_sim.condor > ber_sim.condor
+
+# create a log file directory if necessary
+mkdir -p log
+
+# submit jobs to cluster. See template.ber_sim.condor file for more details
+condor_submit ber_sim.condor 
+
+# remove the submit files
+rm ber_sim.condor

@@ -1,0 +1,57 @@
+; Sample parameter file for density evolution using Belief Propagation Decoding
+; Some settings appear commented with their default values, unless the description of the setting
+; explicitly states other default behavior. If you want to change
+; them uncomment and edit them.
+
+; Simulation settings
+[Sim]
+;   Left end of bisection search window.
+   thr_min = 1e-7
+;   Right end of bisection search window. If left empty, defaults to the noise value corresponding to the shannon capacity corresponding to the coderate
+;   thr_max = 
+;   Determines at which search window size convergence is declared
+   thr_prec = 1e-5
+;   Maximum number of 
+   Pe_max = 1e-10
+;   Maximum number of density evolution iterations. Can be set to be a vector, iff
+;   rows(qbits) == 1. The program then sweeps over different number of iterations
+   maxiter_de = 2000
+;   maxiter_bisec = 50
+   max_ni_de_iters = 1
+   LLR_max = 25.0
+;   Where the thresholds will be saved
+   results_name = results/rate0.50_dv02-17_dc08-09_lut_q4_minLUT1_de-auto-bin-balanced_example.txt
+;   Load ensemble from file (ignoring subsequent specification of the ensemble)  
+   ensemble_filename = ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens
+
+
+
+; Settings for the BP Decoder. 
+;[BP]
+;  Maximum number of decoding operations. Warning: At least one option of this section
+;  must be set for the program to recognize what kind of decoder to use.
+;   Number of bits to quantize pmfs 
+;   qbits = 9
+;   min_sum = false
+   
+
+[LUT]
+   min_lut = true
+;   Pairs of resolutions for channel LLRs (first) and Messages (second), e.g. 2 2; 3 3; ...
+   qbits = 4 4
+; Any LUT is reused for a specified number of times. If multiple values are specified, the program sweeps over those
+;   reuse_iter_vec = 0
+; Reuse vec for non parallellized exectution
+;   reuse_vec =
+;   Where to get the tree structures from. Allowed options are 
+;     auto_bin_balanced
+;     auto_bin_high
+;     root_only
+;     filename=trees/tree_file_example.ini
+   tree_mode = auto_bin_balanced
+;  Design strategy for irregular ensembles (individual, joint_level, joint_root)
+   irregular_design_strategy = joint_root
+;  Resolution of initial uniform channel quantization
+;   Nq_fine = 5000
+;  If the resolution should change over iterations, specify the resolution of each iteration in this vector
+;   Nq_msg_vec =

@@ -1,0 +1,5 @@
+#Ignore compiled mex files
+#OSX
+*.mexmaci64
+#Linux
+*.mexa64

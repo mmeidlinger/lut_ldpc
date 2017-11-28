@@ -1,0 +1,134 @@
+# This Makefile builds itpp and ldpc-lut
+
+
+# ========== Set options for LDPC_LUT 
+BUILDDIR := build
+SRCDIR := src
+PROGDIR := prog
+BINDIR := bin
+DOCDIR := doc
+LIBDIR := lib
+INCDIR := include
+LIB_PATH := -L$(LIBDIR)
+LIBS :=  -llapack -lfftw3 -lblas -lboost_filesystem -lboost_program_options -lboost_system -lglpk -lm  #Add libraries if needed, itpp is loaded by default
+CFLAGS := -std=c++11 -Wall -pthread
+LFLAGS :=
+INCLUDE := -I$(INCDIR)
+DEBUG := 
+BUILD_TYPE ?= Debug
+
+# include bin/ directory in the path
+export PATH := bin:$(PATH)
+
+SRCEXT := cpp
+OSOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+TSOURCES := $(shell find $(PROGDIR) -type f -name *.$(SRCEXT))
+
+OSOURCES += $(SRCDIR)/gitversion.cpp
+
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(OSOURCES:.$(SRCEXT)=.o))
+TARGETS := $(patsubst $(PROGDIR)/%,$(BINDIR)/%,$(basename $(TSOURCES)))
+
+# Suppose you wanted to remove some specific target and treat it differently:
+#TARGETS := $(filter-out $(BINDIR)/de_sim,$(TARGETS))
+
+# ========== Set compiler based on Operating system
+ifeq ($(OS),Windows_NT)
+    echo "Windows sux for doing development. Consider another platform";
+    exit
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+		  CC := g++
+		  # On Linux, we like to create a portable binary, for which we need additional libs. When compiling,
+		  # make sure that static versions of these libraries are installed on your linux system
+		  LIBS += -lgomp -lgfortran -lquadmath -Wl,--whole-archive -lpthread  -lcolamd -lz -lltdl -ldl -Wl,--no-whole-archive 
+		  # The implementations of liblapack and libblas contain the same symbols in some cases
+		  # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=354463 (Last visited: 2016-04-13)
+		  #     https://cmake.org/Bug/view.php?id=12912 (Last visited: 2016-04-13)
+		  # we use the linker flag -Wl,--allow-multiple-definition to work around this. This is not perfectly
+		  # clean but does the job for the moment. 
+		  LFLAGS += -pthread -static -Wl,--allow-multiple-definition
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        CC := clang++
+    endif
+endif
+
+
+# ========== Set options for ITPP 
+ifeq ($(BUILD_TYPE),Release)
+	ITPP_LIBNAME := libitpp_static.a
+	LITPP := -litpp_static
+ 	CFLAGS += -DNDEBUG -O3
+endif
+ifeq ($(BUILD_TYPE),Debug)
+	DEBUG += -g
+	ITPP_LIBNAME := libitpp_static_debug.a
+	LITPP := -litpp_static_debug
+endif
+
+
+# =========== Setup IT++ target
+
+ITPP_TARGET= $(LIBDIR)/$(ITPP_LIBNAME)
+ITPP_CMAKE_ARGS=-DITPP_SHARED_LIB=off -DHTML_DOCS=off -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(shell pwd)
+ITPP_HEADERS := $(shell find itpp/itpp -name '*.h'  -o -name '*.hpp')
+ITPP_SOURCES := $(shell find itpp/itpp -name '*.c' -o -name '*.cpp')
+
+
+
+# ========== Degugging of Makefile
+#$(info $$TARGETS is [${TARGETS}])
+#$(info $$OSOURCES is [${OSOURCES}])
+#$(info $$TSOURCES is [${TSOURCES}])
+
+#================ Makefile targets
+
+# Phony Targets
+.PHONY: clean all doc
+
+.SECONDEXPANSION:
+
+# Compile
+all: $(TARGETS)
+
+
+# Write Git Version to file for reproducibility of results
+$(SRCDIR)/gitversion.cpp: ../.git/HEAD ../.git/index
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+
+# Link programs
+$(TARGETS): $(BUILDDIR)/$$(basename $$(notdir $$@)).o $(OBJECTS)
+	@echo " Linking $@..."
+	@echo " $(CC)  $^ -o $@ $(LIB_PATH) $(LITPP) $(LIBS) $(LFLAGS)"; $(CC)  $^ -o $@ $(LIB_PATH) $(LITPP) $(LIBS) $(LFLAGS)
+
+# Build ITPP and install (headers go into include/, the lib itself into lib/)
+$(ITPP_TARGET): $(ITPP_HEADERS) $(ITPP_SOURCES) 
+	cd itpp && mkdir -p build && cd build && \
+	cmake .. $(ITPP_CMAKE_ARGS) && \
+	make && make install && cd ../.. ; \
+	rm -r share && rm -r $(LIBDIR)/pkgconfig;
+
+# Create object files WITHOUT main functions
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT) $(ITPP_TARGET) 
+	@mkdir -p $(dir $@)
+	@echo " $(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<"; $(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+
+# Create object files WITH main functions
+$(BUILDDIR)/%.o: $(PROGDIR)/%.$(SRCEXT) $(ITPP_TARGET)
+	@mkdir -p $(dir $@)
+	@echo " $(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<"; $(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+
+# Documentation
+doc:
+	doxygen $(DOCDIR)/Doxyfile
+
+# Delete everything 
+clean:
+	rm -rf $(BUILDDIR);
+	rm -rf $(BINDIR)
+	@rm -rf $(shell find $(DOCDIR)/* -not -name .gitignore -not -name Doxyfile -not -name README.md );
+	rm -rf lib/libitpp*
+	rm -rf $(INCDIR)/itpp	
+	rm -rf $(SRCDIR)/gitversion.cpp

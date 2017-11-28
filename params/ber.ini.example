@@ -1,0 +1,107 @@
+; Sample parameter file for LDPC coded transmission over an BI-AWGN channel
+
+; Some settings appear commented with their default values, unless the description of the setting
+; explicitly states other default behavior. If you want to change
+; them uncomment and edit them.
+
+; Simulation settings
+[Sim]
+;  SNRs to simulate
+   SNRdB    = 0:.5:4
+;  Settings concerning the length and accuracy of a simulation
+;  At most Nframes codewords are transmitted, however, transmission for a particular SNR
+;  is terminated if the number exceeds Nfers. Furthermore, processing of additional SNR
+;  points is terminated if either
+;     * The bit error rate is below ber_min
+;     * The frame error rate is below fer_min
+   Nframes  = 1e2
+;   Nfers    = 20
+;   ber_min  = 1e-7
+;   fer_min  = 1e-5
+;  Random Seed Offset
+;     In general the random seed is passed to the program when calling it. Here,
+;     you can specify an offset
+;   rand_seed_offset = 0
+;  Custom name used to indentify the simulation
+;   custom_name = 
+;  Prefix for results
+;   results_prefix = RES 
+;  Settings regarding the search paths of the program. Keep in mind that the directories specified
+;  here have to exist and the program needs to have permission to write to them. You can specify
+;  them either relativ to the main directory of the program, but absolute paths also work fine.
+;  As the search path for the parameter files has to be known to the program before loading param files,
+;  it is specified by the BER_SIM_PARAMS_DIR preprocessor option. The default value ('.') can be
+;  overridden at compile time.
+;   results_dir = results
+;   trees_dir = trees
+;   codes_dir = codes
+;  The codec is saved, if the random seed matches the value of save_codec. This is to avoid race conditions if multiple
+;  instances of the program try to write the codec at the same time. Set save_codec to a negative number to avoid saving at all
+;   save_codec=0
+;  Codec filename and type. If these two setting are non-empty, the Codec is loaded from a file and all settings within the 
+;  [LDPC], [BP] and [LUT] sections are ignored. This has to be supplied as an absolute path or relative to the working directory
+;   codec_type = none ;BP, LUT
+;   codec_filename = 
+
+
+; Settings for the LDPC code. Further variables (codeword lendth, etc... 
+; are determined upon loading the code)
+[LDPC]
+   parity_filename = rate0.50_dv02-17_dc08-09_lut_q4_N500
+;  Wether a Generator matrix is used to encode random datawords or the all zero word is sent
+   zero_codeword   = false 
+;  Wether the Generator Matrix and the corresponding (possibly permuted) Parity Check Matrix that are generated
+;  if LDPC.zero_codeword = true are saved to disk, potentially overwriting the original Parity check .alist file.
+;   save_permuted = false
+;  Wether a parity check is performed after each decoding iteration. Setting this to true is beneficial in case of a large number of iterattions.
+;   parity_check_iter = true
+   
+; Settings for the BP Decoder. 
+;[BP]
+;  Maximum number of decoding operations. Warning: At least one option of this section
+;  must be set for the program to recognize what kind of decoder to use.
+;   max_iter = 30
+;  Set the resolution of llrs
+;     http://itpp.sourceforge.net/4.3.1/classitpp_1_1LLR__calc__unit.html#a531b0a4eca593e439a39ba9de42ee68c
+;  Size of jac-log table. Set to 0 for min-sum decoding   
+;   qllr_table_size = 300
+;  Total number of bits for the qllr scaling factor determining the number of fractional bits
+;   qllr_scale_res  = 12
+;  Determines the spacing in between quantized LLR values
+;   qllr_spacing_res = 7
+;  Determines the internal resolution of the discrete LLRs. Defaults to 8*sizeof(QLLR)-4 if left empty
+;   qllr_total_res  =
+
+
+; Settings for a LUT based decoder. Warning: At least one option of this section
+; must be set for the program to recognize what kind of decoder to use.
+[LUT]
+   max_iter = 50
+;  Design SNR. Either this, or design_thr must be specified
+;   design_SNRdB =
+;  Design Noise threshold of an BIAWGN channel. If not specified, design_thr = sqrt(pow10(-design_SNRdB/10)/(2*LDPC_Code_Rate))
+   design_thr = 0.88
+;  Wether the check node update is LUT based or based on the min-sum rule
+;   min_lut = true;
+;  number of bits for channel LLR quantization
+   qbits_channel = 4
+;  number of bits per message. This assumes the resolution is uniform over iterations
+   qbits_message_uniform = 4 
+;  number of bits per message for each iteration. This has to be a vector of length max_iter
+;  The default is to set it equal to qbits_message_uniform for all iteration. If you specify
+;  the option qbits_message_uniform is overridden and does not have any impact
+;  Example of non uniform resolution:
+;   qbits_messages = 3 3 3 3 2 2 2 1
+;  Set this vector to reuse Lookup-tables. The vector has to be 1 at position ii if at iteration ii, 
+;  the LUT of iteration ii-1 is reused
+;   reuse_lut = 0 0 1 0 0 1 0 0
+;  Which tree structures to use for simulation options are
+;     1. auto_bin_balanced: Automatically generate binary balanced trees
+;     2. file: Load the tree structure frome a file within the 'trees' directory
+;     3. auto_bin_high: Automatically generate a binary tree of maximum height
+;     4. root_only: All leaf nodes are attached directly to the root node
+;   tree_mode = auto_bin_balanced
+;  Where to look for tree files
+;   trees_dir = trees 
+;   trees_filename =
+

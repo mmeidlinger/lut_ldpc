@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# But these files...
+!.gitignore
+!README.md
+!*.alist

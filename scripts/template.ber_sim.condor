@@ -1,0 +1,27 @@
+############################################################
+## Condor File Template for condor_matlab
+############################################################
+
+## ---------------------------------------------------------
+## -- SIMULATION Parameters (User Section)
+## ---------------------------------------------------------
+params_file     =       PARAMSFILE 
+nr_jobs         =       NRJOBS
+log_filename    =       LOGFILENAME
+base_dir        =       BASEDIR
+custom_name     =       CUSTOMNAME
+
+## ---------------------------------------------------------
+## -- CONDOR setup : DO NOT TOUCH
+## ---------------------------------------------------------
+notification    =       never
+universe        =       vanilla
+Rank            =       Kflops
+#executable      =       bin/ber_sim 
+executable      =       scripts/ber_sim_wrapper.sh
+log             =       log/$(log_filename).log
+output          =       log/$(log_filename).out.$(Process)
+error           =       log/$(log_filename).err.$(Process)
+#Arguments       =       -p $(params_file) -s $(Process) -b $(base_dir) -c $(custom_name)
+Arguments       =       $(params_file) $(Process) $(base_dir) $(custom_name)
+Queue $(nr_jobs)

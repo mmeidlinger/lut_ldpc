@@ -1,0 +1,6 @@
+build
+itpp_build_osx
+bin
+include/itpp
+lib
+gitversion.cpp
