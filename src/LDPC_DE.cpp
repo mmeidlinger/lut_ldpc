@@ -10,7 +10,7 @@
  */
 
 #include "LDPC_DE.hpp"
-#include <TextTable.h>
+#include "TextTable.h"
 
 
 using namespace itpp;
@@ -148,22 +148,15 @@ void LDPC_Ensemble::read(const std::string& filename)
     // parse number of active degrees
     getline(file, line);
     ss << line;
-    ss >> ds_act >> dvs_act >> dvc_act >> dc_act;
+    ss >> dv_act >> dc_act;
     it_assert(!ss.fail(),
               "LDPC_Ensemble::read(): Wrong active degree data!");
-    it_assert((ds_act == 1) && (dvs_act == 1) && (dvc_act > 0) && (dc_act > 0),
+    it_assert( (dv_act > 0) && (dc_act > 0),
               "LDPC_Ensemble::read(): Wrong active degree data!");
     
     ss.seekg(0, std::ios::end);
     ss.clear();
     
-    dv_act = dvc_act;
-
-    // skip symbol node distribution
-    getline(file, line); // symbol node degrees
-    getline(file, line); // symbol node distribution
-    getline(file, line); // variable-to-symbol node degrees
-    getline(file, line); // variable-to-symbol node distribution
     
     // parse variable node distribution
     degree_lam.set_size(dv_act);
@@ -247,11 +240,7 @@ void LDPC_Ensemble::write(const std::string& filename) const
               << filename << "\" for writing");
     
     // write number of active degrees
-
-    file << 1 << " " << 1 << " " <<  dv_act << " " << dc_act << endl;
-    
-    // write symbol node distribution
-    file << 1 << endl << "1.0" << endl << 1 << endl << "1.0" << endl;
+    file <<   dv_act << " " << dc_act << endl;
     
     // write variable node degrees and distribution
     for (int ii = 0; ii < dv_act-1; ii++) {
