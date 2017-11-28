@@ -1,0 +1,11 @@
+lib/*
+bin/*
+build
+results
+src/gitversion.cpp
+include
+
+# This might be created by itpp make install
+share
+include/itpp
+
