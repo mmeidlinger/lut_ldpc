@@ -1,0 +1,4 @@
+[submodule "itpp"]
+	path = itpp
+	url = ssh://gitlab@dev.meidlinger.info/michael.meidlinger/itpp.git
+	branch = ldpc-lut
