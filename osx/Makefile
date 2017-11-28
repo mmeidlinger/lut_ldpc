@@ -17,6 +17,6 @@ $(ITPP_TARGET): $(ITPP_HEADERS) $(ITPP_SOURCES)
 	rm -rf share && rm -rf lib/pkgconfig;
 
 # Write Git Version to file for reproducibility of results
-gitversion.cpp: ../../.git/HEAD ../../.git/index
+gitversion.cpp: ../.git/HEAD ../.git/index
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 

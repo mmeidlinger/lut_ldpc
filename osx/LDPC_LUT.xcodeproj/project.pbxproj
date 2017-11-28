@@ -32,6 +32,14 @@
 		D5113BE11E43B7CE00A4FD4E /* LDPC_DE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5113BA91E43A0D300A4FD4E /* LDPC_DE.cpp */; };
 		D5113BE31E43B7CE00A4FD4E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D55AE7831CC8162C00A4FD4E /* Accelerate.framework */; };
 		D5113BE91E43B7F500A4FD4E /* de_sim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5113BC11E43A93600A4FD4E /* de_sim.cpp */; };
+		D549C5FC1FCDF98900A4FD4E /* LDPC_Ensemble.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C5FA1FCDF98900A4FD4E /* LDPC_Ensemble.cpp */; };
+		D549C5FD1FCDF98900A4FD4E /* LDPC_Ensemble.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C5FA1FCDF98900A4FD4E /* LDPC_Ensemble.cpp */; };
+		D549C6001FCDFA1E00A4FD4E /* LUT_Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */; };
+		D549C6011FCDFA1E00A4FD4E /* LUT_Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */; };
+		D549C6041FCDFBC400A4FD4E /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C6021FCDFBC400A4FD4E /* common.cpp */; };
+		D549C6051FCDFBC400A4FD4E /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C6021FCDFBC400A4FD4E /* common.cpp */; };
+		D549C6081FCE102E00A4FD4E /* TextTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C6071FCE102E00A4FD4E /* TextTable.cpp */; };
+		D549C6091FCE102E00A4FD4E /* TextTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D549C6071FCE102E00A4FD4E /* TextTable.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,6 +117,14 @@
 		D5113BC11E43A93600A4FD4E /* de_sim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = de_sim.cpp; path = ../prog/de_sim.cpp; sourceTree = "<group>"; };
 		D5113BCE1E43ACA800A4FD4E /* libitpp_debug.8.2.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libitpp_debug.8.2.1.dylib; path = lib/libitpp_debug.8.2.1.dylib; sourceTree = "<group>"; };
 		D5113BE81E43B7CE00A4FD4E /* de_sim */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = de_sim; sourceTree = BUILT_PRODUCTS_DIR; };
+		D549C5FA1FCDF98900A4FD4E /* LDPC_Ensemble.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LDPC_Ensemble.cpp; path = ../src/LDPC_Ensemble.cpp; sourceTree = "<group>"; };
+		D549C5FB1FCDF98900A4FD4E /* LDPC_Ensemble.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = LDPC_Ensemble.hpp; path = ../src/LDPC_Ensemble.hpp; sourceTree = "<group>"; };
+		D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LUT_Tree.cpp; path = ../src/LUT_Tree.cpp; sourceTree = "<group>"; };
+		D549C5FF1FCDFA1E00A4FD4E /* LUT_Tree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = LUT_Tree.hpp; path = ../src/LUT_Tree.hpp; sourceTree = "<group>"; };
+		D549C6021FCDFBC400A4FD4E /* common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../src/common.cpp; sourceTree = "<group>"; };
+		D549C6031FCDFBC400A4FD4E /* common.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = common.hpp; path = ../src/common.hpp; sourceTree = "<group>"; };
+		D549C6061FCE102E00A4FD4E /* TextTable.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TextTable.hpp; path = ../src/TextTable.hpp; sourceTree = "<group>"; };
+		D549C6071FCE102E00A4FD4E /* TextTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextTable.cpp; path = ../src/TextTable.cpp; sourceTree = "<group>"; };
 		D55AE7831CC8162C00A4FD4E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		D5BC49EA1CBD266E00A4FD4E /* ber_sim */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ber_sim; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -154,15 +170,23 @@
 		D5113BA01E43A01200A4FD4E /* src */ = {
 			isa = PBXGroup;
 			children = (
+				D549C6071FCE102E00A4FD4E /* TextTable.cpp */,
+				D549C6061FCE102E00A4FD4E /* TextTable.hpp */,
 				D5113BB51E43A51200A4FD4E /* gitversion.cpp */,
 				D5113BA11E43A0D300A4FD4E /* LDPC_BER_Sim.cpp */,
 				D5113BA21E43A0D300A4FD4E /* LDPC_BER_Sim.hpp */,
 				D5113BA31E43A0D300A4FD4E /* LDPC_Code_LUT.hpp */,
+				D549C5FA1FCDF98900A4FD4E /* LDPC_Ensemble.cpp */,
+				D549C5FB1FCDF98900A4FD4E /* LDPC_Ensemble.hpp */,
 				D5113BA41E43A0D300A4FD4E /* LDPC_Degree_Opt.hpp */,
 				D5113BA51E43A0D300A4FD4E /* LDPC_Degree_Opt.cpp */,
 				D5113BA61E43A0D300A4FD4E /* LDPC_Code_LUT.cpp */,
-				D5113BA71E43A0D300A4FD4E /* LDPC_DE.hpp */,
+				D549C6021FCDFBC400A4FD4E /* common.cpp */,
+				D549C6031FCDFBC400A4FD4E /* common.hpp */,
+				D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */,
+				D549C5FF1FCDFA1E00A4FD4E /* LUT_Tree.hpp */,
 				D5113BA91E43A0D300A4FD4E /* LDPC_DE.cpp */,
+				D5113BA71E43A0D300A4FD4E /* LDPC_DE.hpp */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -288,6 +312,10 @@
 				D5113BE91E43B7F500A4FD4E /* de_sim.cpp in Sources */,
 				D5113BDE1E43B7CE00A4FD4E /* gitversion.cpp in Sources */,
 				D5113BE11E43B7CE00A4FD4E /* LDPC_DE.cpp in Sources */,
+				D549C5FD1FCDF98900A4FD4E /* LDPC_Ensemble.cpp in Sources */,
+				D549C6051FCDFBC400A4FD4E /* common.cpp in Sources */,
+				D549C6091FCE102E00A4FD4E /* TextTable.cpp in Sources */,
+				D549C6011FCDFA1E00A4FD4E /* LUT_Tree.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,8 +324,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D5113BAC1E43A0D300A4FD4E /* LDPC_Code_LUT.cpp in Sources */,
+				D549C5FC1FCDF98900A4FD4E /* LDPC_Ensemble.cpp in Sources */,
+				D549C6001FCDFA1E00A4FD4E /* LUT_Tree.cpp in Sources */,
 				D5113BB61E43A51200A4FD4E /* gitversion.cpp in Sources */,
+				D549C6041FCDFBC400A4FD4E /* common.cpp in Sources */,
 				D5113BAA1E43A0D300A4FD4E /* LDPC_BER_Sim.cpp in Sources */,
+				D549C6081FCE102E00A4FD4E /* TextTable.cpp in Sources */,
 				D5113BC41E43A93600A4FD4E /* ber_sim.cpp in Sources */,
 				D5113BAE1E43A0D300A4FD4E /* LDPC_DE.cpp in Sources */,
 			);
@@ -471,6 +503,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					/usr/local/include,
+					"../cpp-text-table",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					lib,
@@ -525,6 +558,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					/usr/local/include,
+					"../cpp-text-table",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					lib,
@@ -597,6 +631,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					/usr/local/include,
+					"../cpp-text-table",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					lib,
@@ -651,6 +686,7 @@
 				HEADER_SEARCH_PATHS = (
 					include,
 					/usr/local/include,
+					"../cpp-text-table",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					lib,
@@ -680,6 +716,7 @@
 				D5113BB21E43A29800A4FD4E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D5113BD61E43B7A900A4FD4E /* Build configuration list for PBXAggregateTarget "master" */ = {
 			isa = XCConfigurationList;
@@ -688,6 +725,7 @@
 				D5113BD81E43B7A900A4FD4E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D5113BE51E43B7CE00A4FD4E /* Build configuration list for PBXNativeTarget "de_sim" */ = {
 			isa = XCConfigurationList;

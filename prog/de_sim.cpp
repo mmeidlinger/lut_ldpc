@@ -10,6 +10,7 @@
  */
 
 #include "LDPC_DE.hpp"
+
 #include <boost/program_options.hpp>
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
@@ -23,6 +24,7 @@
 
 using namespace itpp;
 using namespace std;
+using namespace lut_ldpc;
 
 // Declarations
 void de_lut_thread_call(LDPC_DE_LUT de, double* thr, int* iters);

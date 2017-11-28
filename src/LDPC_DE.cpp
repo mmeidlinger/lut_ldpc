@@ -10,365 +10,13 @@
  */
 
 #include "LDPC_DE.hpp"
-#include "TextTable.h"
+#include "TextTable.hpp"
 
 
+using namespace lut_ldpc;
 using namespace itpp;
 using namespace std;
-// ----------------------------------------------------------------------
-// LDPC_Ensemble
-// ----------------------------------------------------------------------
 
-const double LDPC_Ensemble::pmass_tolerance = 1e-2;
-
-LDPC_Ensemble::LDPC_Ensemble(): init_flag(false){}
-
-LDPC_Ensemble::LDPC_Ensemble(const vec& l, const vec& r): init_flag(false){
-    set_chk_degree_dist(r);
-    set_var_degree_dist(l);    
-    check_consistency();
-    init_flag = true;
-}
-
-void LDPC_Ensemble::set_chk_degree_dist(const vec& r)
-{
-    dc_act = 0;
-    for(int ii=0; ii< length(r); ii++)
-        if(r(ii) > 0)   dc_act++;
-    
-    rho = zeros(dc_act);
-    degree_rho = ivec(dc_act);
-    
-    int idx=0;
-    for(int ii=0; ii< length(r); ii++){
-        if(r(ii) > 0){
-            degree_rho(idx) = ii+1;
-            rho(idx) = r(ii);
-            idx++;
-        }
-    }
-    if(init_flag) check_consistency();
-}
-
-void LDPC_Ensemble::set_var_degree_dist(const vec& l)
-{
-    dv_act = 0;
-    for(int ii=0; ii< length(l); ii++)
-        if(l(ii) > 0)   dv_act++;
-    
-    lam = zeros(dv_act);
-    degree_lam = ivec(dv_act);
-    
-    int idx=0;
-    for(int ii=0; ii< length(l); ii++){
-        if(l(ii) > 0){
-            degree_lam(idx) = ii+1;
-            lam(idx) = l(ii);
-            idx++;
-        }
-    }
-    if(init_flag) check_consistency();
-}
-
-inline void LDPC_Ensemble::check_consistency(){
-    
-    // Check if degree distributions are nonnegative
-    bool lam_is_pos, rho_is_pos;
-    lam_is_pos = !(bool)sum(to_ivec(lam<0));
-    rho_is_pos = !(bool)sum(to_ivec(rho<0));
-    it_assert( lam_is_pos && rho_is_pos, "LDPC_Ensemble::check_consistency(): Degree distributions need to be positive!" );
-    
-    // Check if degrees are uniqe
-    it_assert( degree_lam.length() == unique(degree_lam).length() &&
-               degree_rho.length() == unique(degree_rho).length() ,
-               "LDPC_Ensemble::check_consistency(): Degree vectors need to have unique entries" );
-
-    // Check if dimensions match
-    it_assert( dv_act == length(lam) &&
-               dv_act == length(degree_lam) &&
-               dc_act == length(rho) &&
-               dc_act == length(degree_rho),
-               "LDPC_Ensemble::check_consistency(): Inconsistent dimension");
-    
-    // Check if degrees  are non_negative
-    lam_is_pos = !(bool)sum(to_ivec(degree_lam<0));
-    rho_is_pos = !(bool)sum(to_ivec(degree_rho<0));
-    it_assert( lam_is_pos && rho_is_pos, "LDPC_Ensemble::check_consistency(): Degree distributions need to be positive!" );
-
-   
-    // Check if degree distributions sum to one
-    double sum_lam = sum(lam);
-    double sum_rho = sum(rho);    
-    it_assert( std::abs(1.0-sum_lam) < pmass_tolerance ||  
-               std::abs(1.0-sum_rho) < pmass_tolerance ,
-               "LDPC_Ensemble::check_consistency(): Degree distributions do not sum to one within tolerance!" );
-
-    // Normalize
-    lam = lam/sum_lam;
-    rho=rho/sum_rho;
-
-    // Check if Coderate is positive
-    it_assert(get_rate()>0, "LDPC_Ensemble::check_consistency(): Coderate is neagtive!");
-}
-
-LDPC_Ensemble::LDPC_Ensemble(const ivec& dl, const vec& l, const ivec& dr, const vec& r): init_flag(false){
-    dv_act = dl.length();
-    dc_act = dr.length();
-    
-    it_assert( sum(to_ivec(dl < 1)) == 0 && sum(to_ivec(dr < 1)) == 0, "LDPC_Ensemble::LDPC_Ensemble(): Degrees must be larger than 0" );
-    it_assert( dv_act == length(l) && dc_act == length(r), "LDPC_Ensemble::LDPC_Ensemble(): Input dimension mismatch");
-    
-    degree_lam = dl;
-    degree_rho = dr;
-    rho = r;
-    lam = l;
-    
-    check_consistency();
-    init_flag = true;    
-}
-
-LDPC_Ensemble::LDPC_Ensemble(const std::string& filename): init_flag(false)
-{
-    read(filename);
-}
-
-void LDPC_Ensemble::read(const std::string& filename)
-{
-    std::ifstream file;
-    std::string line;
-    std::stringstream ss;
-    
-    int ds_act, dvs_act, dvc_act;
-    
-    file.open(filename.c_str());
-    it_assert(file.is_open(),
-              "LDPC_Ensemble::read(): Could not open file \""
-              << filename << "\" for reading");
-    
-    // parse number of active degrees
-    getline(file, line);
-    ss << line;
-    ss >> dv_act >> dc_act;
-    it_assert(!ss.fail(),
-              "LDPC_Ensemble::read(): Wrong active degree data!");
-    it_assert( (dv_act > 0) && (dc_act > 0),
-              "LDPC_Ensemble::read(): Wrong active degree data!");
-    
-    ss.seekg(0, std::ios::end);
-    ss.clear();
-    
-    
-    // parse variable node distribution
-    degree_lam.set_size(dv_act);
-    degree_lam.clear();
-    lam.set_size(dv_act);
-    lam.clear();
-    getline(file, line); //variable node degrees
-    ss << line;
-    for (int ii = 0; ii < dv_act; ii++) {
-        ss >> degree_lam(ii);
-        it_assert(!ss.fail(),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (degree_lam("
-                  << ii << "))");
-        it_assert((degree_lam(ii) >= 1),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (degree_lam("
-                  << ii << "))");
-    }
-    ss.seekg(0, std::ios::end);
-    ss.clear();
-    getline(file, line); //variable node distribution
-    ss << line;
-    for (int ii = 0; ii < dv_act; ii++) {
-        ss >> lam(ii);
-        it_assert(!ss.fail(),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (lam("
-                  << ii << "))");
-        it_assert((lam(ii) > 0) && (lam(ii) <= 1),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (lam("
-                  << ii << "))");
-    }
-    ss.seekg(0, std::ios::end);
-    ss.clear();
-    
-    // parse check node distribution
-    degree_rho.set_size(dc_act);
-    degree_rho.clear();
-    rho.set_size(dc_act);
-    rho.clear();
-    getline(file, line); //check node degrees
-    ss << line;
-    for (int ii = 0; ii < dc_act; ii++) {
-        ss >> degree_rho(ii);
-        it_assert(!ss.fail(),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (degree_rho("
-                  << ii << "))");
-        it_assert((degree_rho(ii) >= 1),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (degree_rho("
-                  << ii << "))");
-    }
-    ss.seekg(0, std::ios::end);
-    ss.clear();
-    getline(file, line); //check node distribution
-    ss << line;
-    for (int ii = 0; ii < dc_act; ii++) {
-        ss >> rho(ii);
-        it_assert(!ss.fail(),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (rho("
-                  << ii << "))");
-        it_assert((rho(ii) > 0) && (rho(ii) <= 1),
-                  "LDPC_Ensemble::read(): Wrong active degree data! (rho("
-                  << ii << "))");
-    }
-    ss.seekg(0, std::ios::end);
-    ss.clear();
-    
-    file.close();
-
-    check_consistency();
-    init_flag = true;
-    return;
-}
-
-void LDPC_Ensemble::write(const std::string& filename) const
-{
-    std::ofstream file;
-    
-    
-    file.open(filename.c_str());
-    it_assert(file.is_open(),
-              "LDPC_Ensemble::write(): Could not open file \""
-              << filename << "\" for writing");
-    
-    // write number of active degrees
-    file <<   dv_act << " " << dc_act << endl;
-    
-    // write variable node degrees and distribution
-    for (int ii = 0; ii < dv_act-1; ii++) {
-        file << degree_lam(ii) << " ";
-    }
-    file << degree_lam(dv_act-1)<< endl;
-    
-    for (int ii = 0; ii < dv_act-1; ii++) {
-        file << lam(ii) << " ";
-    }
-    file << lam(dv_act-1)<< endl;
-    
-    // write variable node degrees and distribution
-    for (int ii = 0; ii < dc_act-1; ii++) {
-        file << degree_rho(ii) << " ";
-    }
-    file << degree_rho(dc_act-1)<< endl;
-    
-    for (int ii = 0; ii < dc_act-1; ii++) {
-        file << rho(ii) << " ";
-    }
-    file << rho(dc_act-1)<< endl;
-    
-    file.close();
-    return;
-}
-
-void LDPC_Ensemble::export_deg(const std::string& filename) const{
-    std::ofstream file;
-    
-    
-    file.open(filename.c_str());
-    it_assert(file.is_open(),
-              "LDPC_Ensemble::export_deg(): Could not open file \""
-              << filename << "\" for writing");
-    
-    // write number of active variable node degrees
-    file << dv_act << endl;
-    
-    
-    // write variable node degrees
-    for (int ii = 0; ii < dv_act-1; ii++) {
-        file << degree_lam(ii) << " ";
-    }
-    file << degree_lam(dv_act-1)<< endl;
-    
-    // write variable node degree distribution (node perspective)
-    vec Lam = sget_Lam();
-    it_assert(Lam.size()==dv_act, "LDPC_Ensemble::export_deg(): Inconsistent ensemble");
-    for (int ii = 0; ii < dv_act-1; ii++) {
-        file << Lam(ii) << " ";
-    }
-    file << Lam(dv_act-1)<< endl;
-
-    file.close();
-    return;
-}
-
-double LDPC_Ensemble::get_rate() const {
-    return 1 -  sum(elem_div(rho, to_vec(degree_rho))) / sum(elem_div(lam, to_vec(degree_lam)));
-}
-
-vec LDPC_Ensemble::sget_lam()const  {return lam;}
-
-int LDPC_Ensemble::sget_lam(vec& l, ivec& dl)const{
-    l = lam;
-    dl = degree_lam;
-    return dv_act;
-}
-
-vec LDPC_Ensemble::sget_Lam()const {
-    vec Lam(dv_act);
-    Lam = elem_div(lam, to_vec(degree_lam));
-    return Lam/sum(Lam);
-}
-
-vec LDPC_Ensemble::sget_rho()const{ return rho; }
-
-int LDPC_Ensemble::sget_rho(vec& r, ivec& dr)const{
-    r = rho;
-    dr = degree_rho;
-    return dc_act;
-}
-
-vec LDPC_Ensemble::sget_Rho()const {
-    vec Rho(dc_act);
-    Rho = elem_div(rho, to_vec(degree_rho));
-    return Rho/sum(Rho);
-}
-
-ivec LDPC_Ensemble::sget_degree_rho() const {return degree_rho;}
-ivec LDPC_Ensemble::sget_degree_lam() const {return degree_lam;}
-
-int LDPC_Ensemble::get_dv_act() const   {return dv_act;}
-int LDPC_Ensemble::get_dc_act() const   {return dc_act;}
-
-
-vec LDPC_Ensemble::get_chk_degree_dist() const {
-    vec r = zeros(max(degree_rho));
-    for(int ii=0; ii<dc_act; ii++) r(degree_rho(ii)-1) = rho(ii);
-    return r;
-}
-
-vec LDPC_Ensemble::get_var_degree_dist() const {
-    vec l = zeros(max(degree_lam));
-    for(int ii=0; ii<dv_act; ii++) l(degree_lam(ii)-1) = lam(ii);
-    return l;
-}
-
-void LDPC_Ensemble::sset_rho(vec r){
-    it_assert_debug(r.length() == dc_act, "LDPC_Ensemble::sset_rho(): Active number of degrees does not match");
-    rho = r;
-    if(init_flag) check_consistency();
-}
-
-void LDPC_Ensemble::sset_lam(vec l){
-    it_assert_debug(l.length() == dv_act, "LDPC_Ensemble::sset_rho(): Active number of degrees does not match");
-    lam = l;
-    if(init_flag) check_consistency();
-}
-
-double LDPC_Ensemble::get_lam_of_degree(int d) const {
-    
-    for(int ii=0; ii<dv_act; ii++){
-        if( d == degree_lam(ii) )   return lam(ii);
-    }
-    return 0;
-}
 
 // ----------------------------------------------------------------------
 // LDPC_DE
@@ -428,817 +76,6 @@ int LDPC_DE::bisec_search(double & thr){
         thr = 0;
         return -1;
     }
-}
-
-// ----------------------------------------------------------------------
-// LUT_Tree_Node
-// ----------------------------------------------------------------------
-
-LUT_Tree_Node::LUT_Tree_Node(node_type_t t){
-    type = t;
-    K = 0;
-    ivec Q(0);
-    vec p(0);
-}
-
-void LUT_Tree_Node::add_child(node_type_t t){
-    this->add_child_back(t);
-    return;
-}
-
-void LUT_Tree_Node::add_child(LUT_Tree_Node* child){
-    this->add_child_back(child);
-    return;
-}
-
-void LUT_Tree_Node::add_child_front(node_type_t t){
-    LUT_Tree_Node* new_child = new LUT_Tree_Node(t);
-    children.push_front(new_child);
-    return;
-}
-
-void LUT_Tree_Node::add_child_front(LUT_Tree_Node* child){
-    if( child != 0)
-        children.push_front(child);
-    return;
-}
-
-void LUT_Tree_Node::add_child_back(node_type_t t){
-    LUT_Tree_Node* new_child = new LUT_Tree_Node(t);
-    children.push_back(new_child);
-    return;
-}
-
-void LUT_Tree_Node::add_child_back(LUT_Tree_Node* child){
-    if( child != 0)
-        children.push_back(child);
-    return;
-}
-
-LUT_Tree_Node* LUT_Tree_Node::deep_copy(){
-    
-    LUT_Tree_Node* new_root =  new LUT_Tree_Node(this->type);
-    new_root->p = this->p;
-    new_root->Q = this->Q;
-    new_root->K = this->K;
-    
-    for (unsigned int ii=0; ii< this->children.size(); ii++){
-        new_root->children.push_back( this->children[ii]->deep_copy());
-    }
-    return new_root;
-}
-
-void LUT_Tree_Node::set_leaves(const vec& p_Msg, const vec& p_Cha){
-    if(type == MSG)
-        p = p_Msg;
-    else if(type == CHA)
-        p = p_Cha;
-    else{
-        for (unsigned int ii=0; ii<children.size(); ii++){
-            children[ii]->set_leaves(p_Msg,p_Cha);
-        }
-    }
-    return;
-}
-
-int LUT_Tree_Node::get_height() const{
-    int h = 0;
-    for(unsigned int ii=0; ii<children.size(); ii++){
-        int h_tmp = children[ii]->get_height();
-        if( h_tmp >= h)  h = h_tmp+1;
-    }
-    return h;
-}
-
-vec LUT_Tree_Node::tree_update(bool reuse,
-                               void (*fp)(vec&, ivec&, const Array<vec>&, int, bool) )
-{
-    if( type == MSG || type == CHA){
-        return p;;
-    }
-    else{
-        Array<vec> p_Msg((int)children.size());
-        for(unsigned int ii=0; ii<children.size(); ii++){
-            p_Msg(ii) = children[ii]->tree_update(reuse, fp);
-        }
-        // At this point we are at an im or root node and and have examined and collected
-        // all children pmfs in p_Msg
-        (*fp)(p, Q, p_Msg, K, reuse);
-        return p;
-    }
-}
-
-int LUT_Tree_Node::get_metric(int l){
-    if(this->type == MSG || this->type == CHA)
-        return l;
-    else{
-        l++;
-        for(unsigned int ii=0; ii<children.size(); ii++)   l += children[ii]->get_metric();
-    }
-    return l;
-}
-
-void LUT_Tree_Node::gen_template_string(std::string& ss){
-    
-    switch (this->type) {
-        case ROOT:
-            ss =  ss + "r";
-            break;
-        case IM:
-            ss =  ss + "i";
-            break;
-        case MSG:
-            ss =  ss + "m";
-            break;
-        case CHA:
-            ss =  ss + "c";
-            break;
-        default:
-            break;
-    }
-    
-    for(unsigned int ii=0; ii<children.size(); ii++)
-        this->children[ii]->gen_template_string(ss);
-    
-    ss = ss + "/";
-}
-
-LUT_Tree_Node* LUT_Tree_Node::parse(std::istream& instream){
-    LUT_Tree_Node* node = 0;
-    LUT_Tree_Node* child;
-    char c = instream.get();
-    switch (c) {
-        case EOF:
-            return node;
-        case '/':
-            return node;
-        case 'r':
-            node = new LUT_Tree_Node(ROOT);
-            break;
-        case 'i':
-            node = new LUT_Tree_Node(IM);
-            break;
-        case 'm':
-            node = new LUT_Tree_Node(MSG);
-            break;
-        case 'c':
-            node = new LUT_Tree_Node(CHA);
-            break;
-        default:
-            it_error("LUT_Tree_Node::parse(): Allowed characters are r (root), i (intermediate node), m (message node), c (channel node) and / (end of children)");
-            break;
-    }
-    while(1){
-        child = parse(instream);
-        if(child ==0)    break;
-        node->add_child(child);
-    }
-    return node;
-}
-
-LUT_Tree_Node* LUT_Tree_Node::gen_bin_balanced_tree(int num_leaves, bool var, node_type_t leaf_type){
-
-    it_assert(num_leaves>=2, "LUT_Tree_Node::gen_bin_balanced_tree(): num_leaves must be larger than or equal to 2");
-    std::list<LUT_Tree_Node*> nodes;
-    for(int ll=0; ll< num_leaves - (int)var; ll++)
-        nodes.push_back(new LUT_Tree_Node(leaf_type));
-
-    
-    LUT_Tree_Node* left;
-    LUT_Tree_Node* right;
-    LUT_Tree_Node* new_node=0;
-    while(true){
-        if(nodes.size()==1){
-            if(var){
-                new_node = new LUT_Tree_Node(ROOT);
-                new_node->add_child(nodes.front());
-                new_node->add_child(CHA);
-                nodes.clear();
-                break;
-            }
-            else{
-                new_node = nodes.front();
-                nodes.clear();
-                new_node->type = ROOT;
-                break;
-            }
-        }
-        left = nodes.front();
-        nodes.pop_front();
-        right = nodes.front();
-        nodes.pop_front();
-        new_node = new LUT_Tree_Node(IM);
-        new_node->add_child(left);
-        new_node->add_child(right);
-        nodes.push_back(new_node);
-    }
-    return new_node;
-}
-
-
-LUT_Tree_Node* LUT_Tree_Node::gen_bin_high_tree(int num_leaves, bool var, node_type_t leaf_type){
-    
-    it_assert(num_leaves>=2, "LUT_Tree_Node::gen_bin_high_tree(): num_leaves must be larger than or equal to 2");
-    LUT_Tree_Node* root;
-    LUT_Tree_Node* cur_node;
-    
-    // Add a root node and an intermediate node if necesary
-    root = new LUT_Tree_Node(ROOT);
-    cur_node = root;
-    
-    if(var){
-        cur_node->add_child(CHA);
-    }
-    else{
-        cur_node->add_child(leaf_type);
-    }
-    int num_leaves_todo = num_leaves-1;
-    
-    // Add all but the last leaf nodes
-    while(num_leaves_todo>1){
-        cur_node->add_child_front(IM);
-        cur_node = cur_node->children.front();
-        cur_node->add_child(leaf_type);
-        num_leaves_todo--;
-    }
-    
-    // Add the last leaf node
-    cur_node->add_child(leaf_type);
-    
-    return root;
-}
-
-LUT_Tree_Node* LUT_Tree_Node::gen_root_only_tree(int num_leaves, bool var, node_type_t leaf_type){
-    
-    it_assert(num_leaves>=2, "LUT_Tree_Node::gen_root_only_tree(): num_leaves must be larger than or equal to 2");
-    LUT_Tree_Node* root;
-    
-    // Add a root node and an intermediate node if necesary
-    root = new LUT_Tree_Node(ROOT);
-    
-    
-    for(int ii=0; ii<num_leaves-1; ii++){
-        root->add_child_back(leaf_type);
-    }
-    
-    if(var){
-        root->add_child_back(LUT_Tree_Node::CHA);
-    }
-    else{
-        root->add_child_back(leaf_type);
-    }
-    
-    
-    return root;
-}
-
-void LUT_Tree_Node::set_resolution(int Nq_in, int Nq_out, int Nq_cha){
-    if (type == ROOT)
-        K = Nq_out;
-    else if (type == CHA)
-        K = Nq_cha;
-    else
-        K = Nq_in;
-    
-    for (unsigned int ii=0; ii< children.size(); ii++)
-        children[ii]->set_resolution(Nq_in, Nq_out, Nq_cha);
-}
-
-void LUT_Tree_Node::tikz_draw_tree(std::ostream& outstream){
-    outstream <<  "\\tikzset{\n" <<
-                  "   leavenode/.style = {align=center, inner sep=2pt, text centered },\n" <<
-                  "   imnode/.style = {align=center, inner sep=1pt, text centered},\n" ;
-    
-    int height = this->get_height();
-    for(int hh=1; hh<= height; hh++ )
-        outstream << "   level " << hh << "/.style={sibling distance=" << 7*pow2i(height-hh) << "mm},\n";
-    
-    outstream <<  "}\n\n" <<
-                  "\\def\\imstring{$\\Phi$}\n" <<
-                  "\\def\\chastring{$L$}\n" <<
-                  "\\def\\msgstring{$\\mu$}\n\n" <<
-                  "\\begin{tikzpicture}[<-, >=stealth]";
-    
-    this->tikz_draw_recursive(outstream);
-    
-    outstream << "\n\\end{tikzpicture}";
-}
-
-void LUT_Tree_Node::tikz_draw_tree(const std::string& filename){
-    std::ofstream f;
-    f.open(filename);
-    this->tikz_draw_tree(f);
-    f.close();
-}
-
-void LUT_Tree_Node::tikz_draw_recursive(std::ostream& outstream, int level){
-    
-    // write a new line and indetation according to the current level
-    outstream << std::endl;
-    for(int ii=0; ii<level; ii++)   outstream << "   ";
-    // write nodes according to type
-    switch (this->type) {
-        case ROOT:
-            outstream << "\\node (root)[imnode] {\\imstring}";
-            break;
-        case MSG:
-            outstream << "child{ node [leavenode] {\\msgstring}";
-            break;
-        case CHA:
-            outstream << "child{ node [leavenode] {\\chastring}";
-            break;
-        case IM:
-            outstream << "child{ node[imnode] {\\imstring}";
-            break;
-        default:
-            it_error("LUT_Tree_Node::tikz_draw_recursive(): Node type undefined");
-            break;
-    }
-    // proceed to traverse tree
-    for(unsigned int ii=0; ii<this->children.size(); ii++){
-        this->children[ii]->tikz_draw_recursive(outstream, level+1);
-    }
-    // Befor returning, the child{... statements need to be closed
-    outstream << std::endl;
-    for(int ii=0; ii<level; ii++)   outstream << "   ";
-    if(this->type == ROOT)  outstream << ";";
-    else    outstream << "}";
-    return;
-}
-
-void LUT_Tree_Node::delete_tree(){
-    for(unsigned int ii=0; ii<this->children.size(); ii++){
-        this->children[ii]->delete_tree();
-    }
-    delete this;
-    return;
-}
-
-int LUT_Tree_Node::get_num_leaves(){
-    if(this->type == MSG || this->type == CHA)      return 1;
-    else{
-        int nl = 0;
-        
-        for(unsigned int ii=0; ii<this->children.size(); ii++){
-            nl += this->children[ii]->get_num_leaves();
-        }
-        return nl;
-    }
-}
-
-int LUT_Tree_Node::get_num_luts(){
-    it_error("LUT_Tree_Node::num_luts(): Not implemented yet!");
-    return 0;
-}
-
-void LUT_Tree_Node::reset_pmfs(){
-    for(unsigned int ii=0; ii<this->children.size(); ii++)
-        this->children[ii]->reset_pmfs();
-    this->p.set_size(0);
-}
-
-
-int LUT_Tree_Node::var_msg_update(std::deque<int>& msgs){
-    if(this->type == MSG || this->type == CHA){
-        int out = msgs.front();
-        msgs.pop_front();
-        return out;
-    }
-    int label = 0; // LUT input
-    int base = 1;
-    for(unsigned int ii=0; ii<this->children.size(); ii++){
-        label += base*this->children[ii]->var_msg_update(msgs);
-        base  *= this->children[ii]->K;
-    }
-    if(label < length(Q))
-        return Q(label);
-    else
-        return K-1 - Q(2*length(Q)-1-label);
-}
-
-int LUT_Tree_Node::chk_msg_update(std::deque<int>& msgs){
-    if(this->type == MSG ){
-        int out = msgs.front();
-        msgs.pop_front();
-        return out;
-    }
-    int label = 0; // LUT input
-    int base = 1;
-    int parity = 0;
-    for(unsigned int ii=0; ii<this->children.size(); ii++){
-        int label_signed = this->children[ii]->chk_msg_update(msgs);
-        int child_res = this->children[ii]->K;
-        if( label_signed < child_res/2){
-            parity ^= 1;
-            label += base* (child_res/2 -1 -label_signed);
-        }
-        else{
-            label += base* (label_signed- child_res/2);
-        }
-        base  *= child_res/2;
-    }
-    if(parity == 1)
-        return Q(label);
-    else
-        return K-1 - Q(label);
-}
-
-
-LUT_Tree_Node::LUT_Tree_Node(std::istream& is){
-    
-    std::string line;
-    std::stringstream s;
-    int t, inres, outres;
-    
-    // Get Node Type, Input Resolution and Output Resolution
-    getline(is, line);
-    s << line;
-    s >> t >> inres >> outres;
-    it_assert(!s.fail(),
-              "LUT_Tree_Node::LUT_Tree_Node(): Error reading node type and resolution");
-    it_assert((t >= 0 && t < LUT_Tree_Node::num_node_types) && (inres >= 0) && (outres >= 0),
-              "LUT_Tree_Node::LUT_Tree_Node(): Wrong node data");
-    s.seekg(0, std::ios::end);
-    s.clear();
-    
-    this->type = (node_type_t) t;
-    this->K = outres;
-    
-    // Parse Quantizer if present
-    if(inres > 0){
-        getline(is, line);
-        s << line;
-        ivec map(inres);
-        for(int ii=0; ii< inres; ii++){
-            s >> map(ii);
-            it_assert(!s.fail(),
-                      "LUT_Tree_Node::LUT_Tree_Node(): Wrong mapping data (map("
-                      << ii << "))");
-            it_assert( (map(ii)>=0) && ( map(ii) < K ),
-                      "LUT_Tree_Node::LUT_Tree_Node(): Wrong mapping data (map("
-                      << ii << "))");
-        }
-        this->Q = map;
-        
-    }
-}
-
-
-std::string LUT_Tree_Node::node_to_string(){
-    std::stringstream s;
-    
-    int inres = this->Q.length();
-    // First Line: type, inres, outres
-    s << static_cast<int>(this->type) << " " << inres << " " << this->K << std::endl ;
-    // Second Line: Quanzier Mapping
-    if(inres > 0){
-        for(int ii=0; ii< inres-1; ii++){
-            s << this->Q(ii) << " ";
-        }
-        s << Q(inres-1) << std::endl;
-    }
-    return s.str();
-}
-
-
-
-
-void LUT_Tree_Node::serialize_tree(std::ostream& os){
-    int num_children = (int) this->children.size();
-    
-    os << num_children << std::endl;
-    os << this->node_to_string();
-    
-    for(int ii=0; ii<num_children; ii++){
-        this->children[ii]->serialize_tree(os);
-    }
-    
-}
-
-
-LUT_Tree_Node* LUT_Tree_Node::deserialize_tree(std::istream& is){
-    
-    int num_children;
-    std::string line;
-    std::stringstream s;
-    getline(is, line);
-    s << line;
-    s >> num_children;
-    
-    LUT_Tree_Node* new_root =  new LUT_Tree_Node(is);
-
-    for (int ii=0; ii< num_children; ii++){
-        new_root->children.push_back( deserialize_tree(is));
-    }
-    return new_root;
-}
-
-vec LUT_Tree_Node::get_input_product_pmf(LUT_Tree::tree_type_t t) const
-{
-
-    it_assert(this->type == IM || this->type == ROOT, "LUT_Tree::get_input_product_pmf(): function only supported for IM and ROOT nodes!");
-    // fetch child distributions
-    int Nchildren =  (int) this->children.size();
-    Array<vec> p_in(Nchildren);
-    for(int ii=0; ii<Nchildren; ii++){
-        p_in(ii) = this->children[ii]->p;
-    }
-    // build joint distribution
-    if( t == LUT_Tree::VARTREE){
-        return get_var_product_pmf(p_in);
-    }
-    else if( t == LUT_Tree::CHKTREE){
-        return get_chk_product_pmf(p_in);
-    }
-    else if( t == LUT_Tree::DECTREE){
-        return get_var_product_pmf(p_in);
-    }
-    else{
-        it_error("LUT_Tree::get_input_product_pmf(): Function not implemented for this type of tree");
-        return vec(0);
-    }
-}
-
-
-void LUT_Tree_Node::get_level_nodes(int req_level, int cur_level, std::deque<LUT_Tree_Node*>& level_nodes){
-    if(req_level == cur_level){
-        level_nodes.push_back(this);
-    }
-    else{
-        for(unsigned int ii=0; ii<this->children.size(); ii++)
-            this->children[ii]->get_level_nodes(req_level, cur_level+1, level_nodes);
-    }
-}
-
-
-// ----------------------------------------------------------------------
-// LUT_Tree
-// ----------------------------------------------------------------------
-
-LUT_Tree::LUT_Tree(const std::string& tree_string, tree_type_t t){
-    // check wether the tree string represents a valid variable or check node update
-    if( tree_string.find("c") == std::string::npos && t != CHKTREE ){
-        it_error("LUT_Tree::LUT_Tree(): Trees other than type CHKTREE need to have a channel leaf specified");
-    }
-    this->type =t;
-    
-    // create tree
-    std::stringstream tree_stream;
-    tree_stream << tree_string;
-    
-    this->root = LUT_Tree_Node::parse(tree_stream);
-    this->num_leaves = root->get_num_leaves();
-}
-
-LUT_Tree::LUT_Tree(int l , tree_type_t t  , const std::string& m){
-    switch (t) {
-        case DECTREE: //same as VARTREE
-        case VARTREE:
-            if(m == "auto_bin_balanced")
-                this->root = LUT_Tree_Node::gen_bin_balanced_tree(l, true);
-            else if(m == "auto_bin_high")
-                this->root = LUT_Tree_Node::gen_bin_high_tree(l, true);
-            else if(m == "root_only")
-                this->root = LUT_Tree_Node::gen_root_only_tree(l, true);
-            else
-                it_error("LUT_Tree::LUT_Tree(): Autogeneration mode " << m << " not supported");
-            
-            this->type = t;
-            this->num_leaves = l;
-            break;
-        
-        case CHKTREE:
-            if(m == "auto_bin_balanced")
-                this->root = LUT_Tree_Node::gen_bin_balanced_tree(l, false);
-            else if(m == "auto_bin_high")
-                this->root = LUT_Tree_Node::gen_bin_high_tree(l, false);
-            else if(m == "root_only")
-                this->root = LUT_Tree_Node::gen_root_only_tree(l, false);
-            else
-                it_error("LUT_Tree::LUT_Tree(): Autogeneration mode " << m << " not supported");
-    
-            this->type = t;
-            this->num_leaves = l;
-            break;
-            
-            
-        default:
-            it_error("LUT_Tree::LUT_Tree(): Type must be VARTREE, DECTREE or CHKTREE");
-            break;
-    }
-}
-
-LUT_Tree::LUT_Tree(const LUT_Tree& other){
-    if(other.root == nullptr)
-        this->root = nullptr;
-    else
-        this->root = other.root->deep_copy();
-    this->num_leaves = other.num_leaves;
-    this->type = other.type;
-}
-
-LUT_Tree::LUT_Tree(LUT_Tree&& other){
-    this->root = other.root;
-    other.root = nullptr;
-    this->num_leaves = std::move(other.num_leaves);
-    this->type = std::move(other.type);
-}
-
-LUT_Tree& LUT_Tree::operator=(LUT_Tree rhs){
-    LUT_Tree::swap(*this, rhs);
-    return *this;
-}
-
-
-LUT_Tree::~LUT_Tree(){
-    if(this->root != nullptr)
-        this->root->delete_tree();
-}
-
-
-int LUT_Tree::get_metric() const{
-    return this->root->get_metric();
-}
-
-void LUT_Tree::set_leaves(const vec& p_Msg, const vec& p_Cha){
-    this->root->set_leaves(p_Msg, p_Cha);
-}
-
-void LUT_Tree::set_resolution(int Nq_in, int Nq_out, int Nq_cha){
-    this->root->set_resolution(Nq_in, Nq_out, Nq_cha);
-}
-
-void LUT_Tree::tikz_draw_tree(std::ostream& outstream) const {
-    this->root->tikz_draw_tree(outstream);
-}
-void LUT_Tree::tikz_draw_tree(const std::string& filename) const{
-    this->root->tikz_draw_tree(filename);
-}
-
-int LUT_Tree::get_num_leaves() const{
-    return this->num_leaves;
-}
-
-vec LUT_Tree::update(bool reuse){
-    switch (this->type) {
-        case DECTREE: // Same as Var tree, except reuse is prohibited
-           // if(reuse){  it_error("Reuse of Decision node tree not allowed"); }
-        case VARTREE:
-            return this->root->tree_update(reuse, &LUT_Tree::var_update);
-            break;
-        case CHKTREE:
-            return this->root->tree_update(reuse, &LUT_Tree::chk_update);
-            break;
-        default:
-            it_error("LUT_Tree::update(): Tree type must be either VARTREE or CHKTREE");
-            return vec(0);
-            break;
-    }
-}
-
-
-void LUT_Tree::swap(LUT_Tree& a, LUT_Tree& b){
-    std::swap(a.type, b.type);
-    std::swap(a.root, b.root);
-    std::swap(a.num_leaves, b.num_leaves);
-    return;
-}
-
-
-void LUT_Tree::var_update(vec& p_out, ivec& Q_out, const Array<vec>& p_in, int Nq, bool reuse){
-    
-    vec p_Msg_prod = get_var_product_pmf(p_in);
-    int M = length(p_Msg_prod);
-    
-    // Get quantizer, either by reususe or design
-    if(reuse){
-        p_out = zeros(Nq);
-        for(int mm=0; mm<M; mm++){
-            if(mm<M/2)
-                p_out(Q_out(mm)) += p_Msg_prod(mm);
-            else
-                p_out(Nq-1-Q_out(M-1-mm)) += p_Msg_prod(mm);
-        }
-    }
-    else{
-        // Eliminate entries with mass 0
-        bvec idx_nz = (.5*(p_Msg_prod + fliplr(p_Msg_prod)) != 0);
-        ivec Q_out_nz;
-        (void) quant_mi_sym(p_out, Q_out_nz, p_Msg_prod.get(idx_nz), Nq);
-        // For the entries with mass zero we set the outputs symmetrically and assign the least confident llr magnitudes
-        Q_out = concat(ones_i(M/2)*(Nq/2-1), ones_i(M/2)*(Nq/2) );
-        int mm_nz=0;
-        for(int mm=0; mm<M; mm++){
-            if(idx_nz(mm)){
-                Q_out(mm) = Q_out_nz(mm_nz);
-                mm_nz++;
-            }
-        }
-        Q_out = Q_out.left(length(Q_out)/2);
-    }
-    p_out = p_out/sum(p_out);
-    return;
-}
-
-void LUT_Tree::chk_update(vec& p_out, ivec& Q_out, const Array<vec>& p_in, int Nq, bool reuse){
-
-    vec p_Msg_prod_combined = get_chk_product_pmf(p_in);
-
-        // Get quantizer, either by reususe or design
-    if(reuse){
-        p_out = zeros(Nq);
-        int M = length(p_Msg_prod_combined);
-        for(int mm=0; mm<M; mm++){
-            if(mm<M/2)
-                p_out(Q_out(mm)) += p_Msg_prod_combined(mm);
-            else
-                p_out(Nq-1-Q_out(M-1-mm)) += p_Msg_prod_combined(mm);
-        }
-
-    }
-    else{
-        (void) quant_mi_sym(p_out, Q_out, p_Msg_prod_combined, Nq);
-        Q_out =  Q_out.left(length(Q_out)/2);
-    }
-    p_out = p_out/sum(p_out);
-    return;
-}
-
-void LUT_Tree::reset_pmfs(){
-    if(this->root != nullptr)   root->reset_pmfs();
-}
-
-
-
-ivec LUT_Tree::var_msg_update(std::deque<int>& msg_que_all, int llr){
-    it_assert_debug(this->type == VARTREE, "LUT_Tree::var_msg_update(): Only supported for variable node trees");
-    it_assert_debug((int) msg_que_all.size() == this->num_leaves, "LUT_Tree::var_msg_update(): Number of inputs must match number of leaves");
-    it_assert_debug(this->root != nullptr, "LUT_Tree::var_msg_update(): Tree is empty");
-    // todo: check range
-    
-    ivec msgs_out((int) msg_que_all.size());
-    msg_que_all.push_back(llr);
-    
-    for(int ii=0; ii<length(msgs_out); ii++){
-        std::deque<int> msg_que = msg_que_all;
-        msg_que.erase(msg_que.begin()+ii);
-        msgs_out(ii) = root->var_msg_update(msg_que);
-        it_assert_debug(msg_que.size() == 0, "LUT_Tree::var_msg_update(): Not all messages have been processed");
-    }
-    return msgs_out;
-}
-
-ivec LUT_Tree::chk_msg_update(std::deque<int>& msg_que_all){
-    it_assert_debug(this->type == CHKTREE, "LUT_Tree::chk_msg_update(): Only supported for check node trees");
-    it_assert_debug((int) msg_que_all.size() == this->num_leaves+1, "LUT_Tree::chk_msg_update(): Number of inputs must match number of leaves");
-    it_assert_debug(this->root != nullptr, "LUT_Tree::chk_msg_update(): Tree is empty");
-    // todo: check range
-    
-    ivec msgs_out((int) msg_que_all.size());
-    
-    for(int ii=0; ii<length(msgs_out); ii++){
-        std::deque<int> msg_que = msg_que_all;
-        msg_que.erase(msg_que.begin()+ii);
-        msgs_out(ii) = root->chk_msg_update(msg_que);
-        it_assert_debug(msg_que.size() == 0, "LUT_Tree::chk_msg_update(): Not all messages have been processed");
-    }
-    return msgs_out;
-}
-
-int LUT_Tree::dec_update(std::deque<int>& msg_que_all, int llr){
-    it_assert_debug(this->type == DECTREE, "LUT_Tree::dec_update(): Only supported for decision node trees");
-    it_assert_debug((int) msg_que_all.size() + 1 == this->num_leaves, "LUT_Tree::dec_update(): Number of inputs including llr must match number of leaves");
-    it_assert_debug(this->root != nullptr, "LUT_Tree::dec_update(): Tree is empty");
-    // todo: check range
-    
-    msg_que_all.push_back(llr);
-    int llr_out = root->var_msg_update(msg_que_all);
-    it_assert_debug(msg_que_all.size() == 0, "LUT_Tree::dec_update(): Not all messages have been processed");
-
-    return llr_out;
-}
-
-std::string LUT_Tree::gen_template_string(){
-    std::string ss;
-    this->root->gen_template_string(ss);
-    return ss;
-}
-
-
-int LUT_Tree::get_height() const
-{
-    return root->get_height();
-}
-
-void LUT_Tree::get_level_nodes(int level, std::deque<LUT_Tree_Node*>& nodes){
-    it_assert(root != nullptr, "LUT_Tree::get_level_nodes(): Tree empty!");
-    root->get_level_nodes(level, 0, nodes);
-}
-
-std::deque<LUT_Tree_Node*> LUT_Tree::get_level_nodes(int level){
-    std::deque<LUT_Tree_Node*> nodes;
-    get_level_nodes(level, nodes);
-    return nodes;
 }
 
 
@@ -1716,7 +553,7 @@ void LDPC_DE_LUT::get_quant_bound(double sig, vec& qb_Cha, vec& qb_Msg) const{
     vec p;
     
     // calculate quantization boundaries for channel LLRs
-    (void) itpp::quant_mi_sym(p,     Q_out, pmf_channel_fine, Nq_Cha, true);
+    (void) lut_ldpc::quant_mi_sym(p,     Q_out, pmf_channel_fine, Nq_Cha, true);
     K = Nq_Cha;
     Q_out = (Q_out.right(M/2)-K/2);
     qb_Cha.set_size(K/2-1);
@@ -1730,7 +567,7 @@ void LDPC_DE_LUT::get_quant_bound(double sig, vec& qb_Cha, vec& qb_Msg) const{
     qb_Cha = concat(concat( -fliplr(qb_Cha), to_vec(0)), qb_Cha);
     
     // calculate quantization boundaries for channel LLRs
-    (void) itpp::quant_mi_sym(p,     Q_out, pmf_channel_fine, Nq_Msg_vec(0), true);
+    (void) lut_ldpc::quant_mi_sym(p,     Q_out, pmf_channel_fine, Nq_Msg_vec(0), true);
     K = Nq_Msg_vec(0);
     Q_out = (Q_out.right(M/2)-K/2);
     qb_Msg.set_size(K/2-1);
@@ -2196,163 +1033,16 @@ void LDPC_DE_BP::set_tq_tables(){
 
 
 
-double itpp::get_mi_bcpmf_sym(const vec& p){
-    int K = length(p);
-    it_assert(K>0 && mod(K, 2)==0, "get_mi_bcpmf_sym(): Input must have size >0 and an even number of elements");
-    double mi = 0;
-    for (int ii=0; ii<K/2; ii++) {
-        mi +=     p(ii)*     std::log2(2*p(ii)/    ( p(ii)+p(K-1-ii)) ) +
-                  p(K-1-ii)* std::log2(2*p(K-1-ii)/( p(K-1-ii)+p(ii)) );
-    }
-    return mi;
-}
 
 
 
 
-double itpp::quant_mi_sym(vec& p_out, ivec& Q_out, const vec& p_in, int Nq, bool sorted){
-    int K = Nq;
-    int M_in = length(p_in);
-    
-    // asserts
-    it_assert(M_in%2 == 0, "quant_mi_sym(): Length of input pmf must be even");
-    it_assert(K%2 == 0, "quant_mi_sym(): Number of output labels must be even");
-    
-    vec p_sorted;
-    int M;
-    ivec idx_in, idx_sorted;
-    if(sorted == false){
-        // ensure input is sorted strictly and eliminate duplicated entries
-        // this symmetric approach takes care of occurances of LLR 0, equally splitting it among both
-        // halves of the pmf domain
-        p_sorted = sym_llr_sort_unique(p_in,idx_in,idx_sorted);
-        M = p_sorted.length();
-    }
-    else{
-        idx_in = linspace_fixed_step(0, M_in-1);
-        idx_sorted = linspace_fixed_step(0, M_in-1);
-        p_sorted = p_in;
-        M = M_in;
-    }
 
 
-    // trivial case
-    if(K>=M){
-        Q_out.set_size(M_in);
-        int outlabel = 0;
-        for(int mm=0; mm<M_in/2; mm++){
-            if(idx_sorted(mm) > outlabel)
-                outlabel++;
-            Q_out(idx_in(M_in-1-mm))   = K- 1 - outlabel;
-            Q_out(idx_in(mm)) =  outlabel;
-        }
-        // Compute output pmf
-        p_out = zeros(K);
-        for(int mm=0; mm<M_in; mm++){
-            p_out(Q_out(mm)) += p_in(mm);
-        }
-        return itpp::get_mi_bcpmf_sym(p_in);
-    }
-    
-    // Precompute partial mutual information. This matrix is going to be upper diagonal because a >= ap
-    mat g = zeros(M/2,M/2);
-    for (int ap=0; ap<M/2; ap++) {
-        double p_plus=0;
-        double p_minus=0;
-        for (int a=ap; a<M/2; a++) {
-            p_plus  += p_sorted(M/2+a);
-            p_minus += p_sorted(M/2-1-a);
-            g(ap,a) = x_log2_y(p_plus, 2*p_plus/(p_plus+p_minus)) +  x_log2_y(p_minus, 2*p_minus/(p_plus+p_minus));
-        }
-    }
-    
-    
-    // Compute state values S and transitions h
-    mat S  = zeros(M/2,K/2);
-    imat h = zeros_i(M/2,K/2);
-    for(int a=0; a<(M-K)/2+1; a++){
-        S(a,0) = g(0,a);
-    }
-    for(int zz=1; zz<K/2; zz++){
-        for(int a=zz; a<zz+(M-K)/2+1; a++){
-            S(a,zz) = -std::numeric_limits<double>::max();
-            for(int ap=zz; ap<=a; ap++){
-                double t = S(ap-1,zz-1) + g(ap,a);
-                if (t > S(a,zz)) {
-                    S(a,zz) = t;
-                    h(a,zz) = ap;
-                }
-            }
-        }
-    }
-    
-    // compute optimal interval boundaries
-    ivec astar = zeros_i(K/2+1);
-    astar(K/2)=M/2;
-    for(int kk=K/2-1; kk>0; kk--){
-        astar(kk) = h(astar(kk+1)-1, kk);
-    }
-    
-    // Build quantizer
-    int outlabel = 0;
-    Q_out.set_size(M_in);
-    for(int mm=0; mm<M_in/2; mm++){
-        if(idx_sorted(mm+M_in/2)-M/2 >= astar(outlabel+1))    outlabel++;
-        Q_out(idx_in(M_in/2+mm))   = K/2     + outlabel;
-        Q_out(idx_in(M_in/2-1-mm)) = K/2-1   -  outlabel;
-    }
-    // Compute output pmf
-    p_out = zeros(K);
-    for(int mm=0; mm<M_in; mm++){
-        p_out(Q_out(mm)) += p_in(mm);
-    }
 
-    
-    // Mutual information
-    return S(M/2-1,K/2-1);
-    
-}
 
-vec itpp::sym_llr_sort_unique(const vec& p_in, ivec& idx_in, ivec& idx_sorted, double llr_delta){
-    int M_in = p_in.length();
-    vec llr = log(p_in) - fliplr(log(p_in));
-    idx_in = sort_index(llr);
-    int mm=0;
-    while(mm<M_in){
-        int ll=1;
-        while( mm+ll < M_in &&  llr(idx_in(mm)) == llr(idx_in(mm+ll)) ) ll++;
-        idx_in.set_subvector(mm, idx_in.get(mm+sort_index(idx_in.get(mm, mm+ll-1)) ) );
-        mm +=ll;
-    }
-    it_assert_debug(sum( to_ivec(idx_in+fliplr(idx_in) != M_in-1) )==0, "itpp::sym_llr_sort_unique(): Couldn't find symmetric permutation");
 
-    idx_sorted.set_size(M_in/2);
-    idx_sorted(0) = 0;
-    double dupl = llr(idx_in(0));
-    int dupl_idx= 0;
-    int num_dupl = 0;
-    for(int mm=1; mm<M_in/2; mm++){
-        if(std::abs(llr(idx_in(mm)) - dupl) <= llr_delta){
-            num_dupl++;
-        }
-        else{
-            dupl_idx++;
-        }
-        idx_sorted(mm) = dupl_idx;
-        dupl = llr(idx_in(mm));
-    }
-
-    idx_sorted = concat(idx_sorted, 2*max(idx_sorted)+1 - fliplr(idx_sorted));
-    int M = M_in-2*num_dupl;
-    vec p_sorted = zeros(M);
-    for(int mm=0; mm<M_in; mm++){
-        p_sorted(idx_sorted(mm)) += p_in(idx_in(mm));
-    }
-    return p_sorted;
-
-}
-
-vec itpp::chk_update_minsum(const vec& p_in, int dc){
+vec lut_ldpc::chk_update_minsum(const vec& p_in, int dc){
     
     int N = length(p_in);
     it_assert_debug(mod(N, 2)==0, "chk_update_minsum(): Input pmf must have even length");
@@ -2382,7 +1072,7 @@ vec itpp::chk_update_minsum(const vec& p_in, int dc){
     return pmf_join(c_plus, c_minus);
 }
 
-inline vec itpp::pmf_plus(const vec& pmf){
+inline vec lut_ldpc::pmf_plus(const vec& pmf){
     int N = pmf.length();
     it_assert_debug(mod(N, 2)==0, "pmf_plus(): Input pmf must have even length");
     vec pmf_p(N/2);
@@ -2392,7 +1082,7 @@ inline vec itpp::pmf_plus(const vec& pmf){
     return pmf_p;
 }
 
-inline vec itpp::pmf_minus(const vec& pmf){
+inline vec lut_ldpc::pmf_minus(const vec& pmf){
     int N = pmf.length();
     it_assert_debug(mod(N, 2)==0, "pmf_minus(): Input pmf must have even length");
     vec pmf_m(N/2);
@@ -2402,7 +1092,7 @@ inline vec itpp::pmf_minus(const vec& pmf){
     return pmf_m;
 }
 
-inline vec itpp::pmf_join(const vec& pmf_p, const vec& pmf_m){
+inline vec lut_ldpc::pmf_join(const vec& pmf_p, const vec& pmf_m){
     int N = length(pmf_p);
     it_assert_debug(N == length(pmf_m), "pmf_join(): Length of input does not match");
     N = N*2;
@@ -2416,255 +1106,19 @@ inline vec itpp::pmf_join(const vec& pmf_p, const vec& pmf_m){
 
 
 
-int itpp::quant_lin(double x, double delta, int N){
-    it_assert_debug(mod(N,2) == 0, "quant_lin(): Number of quantization intervals must be even");
-    int y = ceil_i(x/delta)+N/2-1;
-    if(y<0) return 0;
-    else if(y>N-1) return N-1;
-    else return y;
-}
-
-int itpp::quant_nonlin(double x, const vec& boundaries){
-    int idx = 0;
-    for(int ii=0; ii<length(boundaries); ii++){
-        if(x > boundaries(ii))
-            idx++;
-        else
-            break;
-    }
-    return idx;
-}
-
-ivec itpp::quant_nonlin(const vec& x, const vec& boundaries){
-    int len = length(x);
-    ivec y(len);
-    for(int ii=0; ii< len; ii++){
-        y(ii) = quant_nonlin(x(ii), boundaries);
-    }
-    return y;
-}
-
-vec itpp::get_gaussian_pmf(double mu, double sig, int N, double delta){
-    vec pmf(N);
-    pmf(0) = 1-Qfunc(((-N/2.0+1)*delta-mu)/sig);
-    for(int nn=1; nn<N-1; nn++){
-        pmf(nn) = Qfunc( ((nn-N/2.0)*delta-mu)/sig) -
-        Qfunc( ((nn+1-N/2.0)*delta-mu)/sig);
-    }
-    pmf(N-1) = Qfunc(((N/2.0-1)*delta-mu)/sig);
-    return pmf/sum(pmf);
-}
-
-
-double itpp::rate_to_shannon_thr(double R){
-    return 1.0/std::sqrt(pow2(2*R)-1);
-}
-
-double itpp::shannon_thr_to_rate(double sig){
-    return .5*std::log2(1+ 1.0/sqr(sig));
-}
 
 
 
-inline double itpp::x_log2_y(double x, double y){
-    if(x==0)   return 0;
-    else if(x>0 && y>0) return x*std::log2(y);
-    it_error("x_log2_y():Input invalid");
-    return -1;
-}
-
-
-template <class Num_T> Vec<Num_T> itpp::fliplr(const Vec<Num_T>& x){
-    int len = x.length();
-    Vec<Num_T> y(len);
-    for(int ii=0; ii<len; ii++ )    y(ii) = x(len-1-ii);
-    return y;
-}
-
-template <class Num_T> Vec<Num_T> itpp::kron(const Vec<Num_T>& x, const Vec<Num_T>& y){
-    int len_x = length(x);
-    int len_y = length(y);
-    Vec<Num_T> z(len_x*len_y);
-    for(int xx=0; xx<len_x; xx++){
-        for(int yy=0; yy<len_y; yy++){
-            z(xx*len_y + yy) = x(xx)*y(yy);
-        }
-    }
-    return z;
-    
-}
-
-LDPC_Ensemble itpp::get_empirical_ensemble(const LDPC_Parity& H){
-    static const int max_degree = 200;
-    
-    
-    
-    int nvar = H.get_nvar();
-    int nchk = H.get_ncheck();
-    
-    // Iterate over all elements. This can be done smarter and faster, however, for that we would need to access internals of the LDPC_Parity class
-
-    
-
-    ivec col_sum = H.get_colsum();
-    ivec row_sum = H.get_rowsum();
-    
-    vec var_edge_deg = zeros(max_degree);
-    vec chk_edge_deg = zeros(max_degree);
-    
-    for(int nn=0; nn< nvar; nn++){
-        it_assert_debug(col_sum(nn) <= max_degree, "get_empirical_ensemble(): Maximum degree exceeded");
-        it_assert_debug(col_sum(nn) > 0, "get_empirical_ensemble(): Minimum degree is 1");
-        var_edge_deg(col_sum(nn)-1)+= col_sum(nn);
-    }
-    for(int mm=0; mm< nchk; mm++){
-        it_assert_debug(row_sum(mm) <= max_degree, "get_empirical_ensemble(): Maximum degree exceeded");
-        it_assert_debug(row_sum(mm) > 0, "get_empirical_ensemble(): Minimum degree is 1");
-        chk_edge_deg(row_sum(mm)-1)+= row_sum(mm);
-    }
-    
-    var_edge_deg = var_edge_deg/sum(var_edge_deg);
-    chk_edge_deg = chk_edge_deg/sum(chk_edge_deg);
-    return LDPC_Ensemble(var_edge_deg, chk_edge_deg);
-}
-
-int itpp::signed_to_unsigned_idx(int idx, const ivec& inres){
-    it_assert(idx < prod(inres) && idx >= 0, "itpp::signed_to_unsigned_idx(): Index out of range");
-    
-    int num_in = length(inres);
-    ivec idx_in = zeros_i(num_in);
-    
-    int out_max = 2 * prod(inres/2);
-    
-    // Get input labels
-    int idx_tmp = idx;
-    for(int jj=0; jj<num_in; jj++){
-        idx_in(jj) = idx_tmp % inres(jj);
-        idx_tmp /= inres(jj);
-    }
-    
-    // Get output labels and parity
-    int parity = 0;
-    int idx_out=0;
-    int base = 1;
-    for(int jj=0; jj<num_in; jj++){
-        if(idx_in(jj) < inres(jj)/2 ){
-            parity ^= 1;
-            idx_out += base * ( inres(jj)/2 - 1 -  idx_in(jj) );
-        }
-        else{
-            idx_out += base * ( idx_in(jj) - inres(jj)/2 );
-        }
-        base *= inres(jj)/2;
-    }
-    
-    if(parity == 0)
-        return out_max-1-idx_out;
-    else
-        return idx_out;
-
-}
-
-std::ostream& itpp::operator<<(std::ostream &os, const LUT_Tree &t){
-    // Write tree header
-    os << t.type << " " << t.num_leaves << std::endl;
-    // Write Tree recursively
-    t.root->serialize_tree(os);
-    return os;
-}
-
-std::ostream& itpp::operator<<(std::ostream &os, const Array<Array<LUT_Tree>> &a){
-    os << a.size() << std::endl;
-    for(int ii=0; ii< a.size(); ii++){
-        os << a(ii).size() << std::endl;
-        for(int jj=0; jj<a(ii).size(); jj++){
-            os << a(ii)(jj);
-        }
-    }
-    return os;
-}
 
 
 
-std::istream& itpp::operator>>(std::istream &is, LUT_Tree &tree){
-    
-    std::string line;
-    std::stringstream s;
-    int t, numl;
-    
-    // Get Tree Type and number of leaves
-    getline(is, line);
-    s << line;
-    s >> t >> numl;
-    it_assert(!s.fail(),
-              "std::istream& itpp::operator>>(std::istream &, LUT_Tree&): Error reading node type and  number of leaves");
-    it_assert((t >= 0 && t < LUT_Tree::num_tree_types) && (numl >= 0),
-              "std::istream& itpp::operator>>(std::istream &, LUT_Tree&): Wrong tree data");
-    s.seekg(0, std::ios::end);
-    s.clear();
-    
-    // Write to tree
-    tree = LUT_Tree(); //Destroy a potentially existing tree
-    tree.num_leaves = numl;
-    tree.type = static_cast<LUT_Tree::tree_type_t>(t);
-    tree.root = LUT_Tree_Node::deserialize_tree(is);
-    return is;
-}
-
-std::istream& itpp::operator>>(std::istream &is, Array<Array<LUT_Tree>> &a){
-    std::string line;
-    std::stringstream s;
-    int deg, num_trees_iter;
-    
-    // Get number of trees
-    getline(is, line);
-    s << line;
-    s >> num_trees_iter;
-    it_assert(!s.fail(),
-              "std::istream& itpp::operator>>(std::istream &, Array<Array<LUT_Tree>>&): Error reading number of trees in dimension 1");
-    it_assert((num_trees_iter >= 0) ,
-              "std::istream& itpp::operator>>(std::istream &, Array<Array<LUT_Tree>>&): Wrong tree data");
-    s.seekg(0, std::ios::end);
-    s.clear();
-
-    // Initialize a new array
-    a = Array<Array<LUT_Tree>>(num_trees_iter);
-    for(int ii=0; ii< num_trees_iter; ii++){
-        getline(is, line);
-        s << line;
-        s >> deg;
-        it_assert(!s.fail(),
-                  "std::istream& itpp::operator>>(std::istream &, Array<Array<LUT_Tree>>&): Error reading number of trees in dimension 2");
-        it_assert((deg >= 1) ,
-                  "std::istream& itpp::operator>>(std::istream &, Array<Array<LUT_Tree>>&): Wrong tree data");
-        s.seekg(0, std::ios::end);
-        s.clear();
-        a(ii) = Array<LUT_Tree>(deg);
-        for(int jj=0; jj<deg; jj++){
-            is >> a(ii)(jj) ;
-        }
-    }
-    return is;
-}
-
-template <class Num_T> Vec<Num_T> itpp::unique(const Vec<Num_T>& x){
-    if(length(x)<=1) return x;
-    
-    Vec<Num_T> y = x;
-    sort(y);
-    
-    int ii=0;
-    int len = length(y);
-    while(ii < len-1){
-        if( y(ii) == y(ii+1) )  y.del(ii);
-        else ii++;
-    }
-    return y;
-}
 
 
 
-void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ensemble& ens, ivec Nq_Msg, int Nq_Cha, bool minLUT, Array<Array<LUT_Tree> >& var_luts, Array<Array<LUT_Tree> >& chk_luts )
+
+
+
+void lut_ldpc::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ensemble& ens, ivec Nq_Msg, int Nq_Cha, bool minLUT, Array<Array<LUT_Tree> >& var_luts, Array<Array<LUT_Tree> >& chk_luts )
 {
     
     int max_iters = length(Nq_Msg);
@@ -2687,23 +1141,23 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
     
     
     if(tm=="filename"){
-        it_assert(filename.length()>0, "itpp::get_lut_tree_templates(): To load the treestructure from a file, specify the tree_method input as 'filename=<name of file>'");
+        it_assert(filename.length()>0, "lut_ldpc::get_lut_tree_templates(): To load the treestructure from a file, specify the tree_method input as 'filename=<name of file>'");
         boost::property_tree::ptree param_tree;
         boost::property_tree::ini_parser::read_ini(filename, param_tree);
         boost::optional<boost::property_tree::ptree&> cur_tree; // stores the current tree structure
         
         // Load trees for the initial iteration
         cur_tree   = param_tree.get_child_optional( "var_iter_000" );
-        it_assert(cur_tree, "itpp::get_lut_tree_templates(): Error reading variable node tree from file!");
+        it_assert(cur_tree, "lut_ldpc::get_lut_tree_templates(): Error reading variable node tree from file!");
         
         var_luts.set_length(max_iters);
         var_luts(0).set_length(dv_act);
         for(int dd=0; dd<dv_act; dd++){
             ss << "var_deg_" << std::setfill('0') << std::setw(3) << var_deg(dd);
             boost::optional<std::string> cur_string = cur_tree->get_optional<std::string>( ss.str() );
-            it_assert(cur_string, "itpp::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration 0");
+            it_assert(cur_string, "lut_ldpc::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration 0");
             var_luts(0)(dd) = LUT_Tree(*cur_string, LUT_Tree::VARTREE);
-            it_assert(var_luts(0)(dd).get_num_leaves() == var_deg(dd), "itpp::get_lut_tree_templates(): LUT tree does not match node degree!");
+            it_assert(var_luts(0)(dd).get_num_leaves() == var_deg(dd), "lut_ldpc::get_lut_tree_templates(): LUT tree does not match node degree!");
             var_luts(0)(dd).set_resolution(Nq_Msg(0), Nq_Msg(1), Nq_Cha);
             ss.str(std::string());
             ss.clear();
@@ -2718,9 +1172,9 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
                 for(int dd=0; dd<dv_act; dd++){
                     ss << "var_deg_" << std::setfill('0') << std::setw(3) << var_deg(dd);
                     boost::optional<std::string> cur_string  = cur_tree->get_optional<std::string>( ss.str() );
-                    it_assert(cur_string, "itpp::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration " << ii << ".");
+                    it_assert(cur_string, "lut_ldpc::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration " << ii << ".");
                     var_luts(ii)(dd) = LUT_Tree(*cur_string, LUT_Tree::VARTREE);
-                    it_assert(var_luts(ii)(dd).get_num_leaves() == var_deg(dd), "itpp::get_lut_tree_templates(): LUT tree does not match node degree!");
+                    it_assert(var_luts(ii)(dd).get_num_leaves() == var_deg(dd), "lut_ldpc::get_lut_tree_templates(): LUT tree does not match node degree!");
                     var_luts(ii)(dd).set_resolution(Nq_Msg(ii), Nq_Msg(ii+1), Nq_Cha);
                     ss.str(std::string());
                     ss.clear();
@@ -2734,14 +1188,14 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
         }
         // Load trees for the last iteration
         cur_tree   = param_tree.get_child_optional( "DT" );
-        it_assert(cur_tree, "itpp::get_lut_tree_templates: Error reading decision node tree from file!");
+        it_assert(cur_tree, "lut_ldpc::get_lut_tree_templates: Error reading decision node tree from file!");
         var_luts(max_iters-1).set_length(dv_act);
         for(int dd=0; dd<dv_act; dd++){
             ss << "var_deg_" << std::setfill('0') << std::setw(3) << var_deg(dd);
             boost::optional<std::string> cur_string = cur_tree->get_optional<std::string>( ss.str() );
-            it_assert(cur_string, "itpp::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration 0");
+            it_assert(cur_string, "lut_ldpc::get_lut_tree_templates(): Could not load tree string for variable node degree " << var_deg(dd) << " at iteration 0");
             var_luts(max_iters-1)(dd) = LUT_Tree(*cur_string, LUT_Tree::DECTREE);
-            it_assert(var_luts(max_iters-1)(dd).get_num_leaves() == var_deg(dd)+1, "itpp::get_lut_tree_templates(): LUT tree does not match node degree!");
+            it_assert(var_luts(max_iters-1)(dd).get_num_leaves() == var_deg(dd)+1, "lut_ldpc::get_lut_tree_templates(): LUT tree does not match node degree!");
             var_luts(max_iters-1)(dd).set_resolution(Nq_Msg(0), Nq_Msg(1), Nq_Cha);
             ss.str(std::string());
             ss.clear();
@@ -2750,15 +1204,15 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
         if(!minLUT){
             // Initial Iteration
             cur_tree   = param_tree.get_child_optional( "chk_iter_000" );
-            it_assert(cur_tree, "itpp::get_lut_tree_templates(): Error reading check node tree from file!");
+            it_assert(cur_tree, "lut_ldpc::get_lut_tree_templates(): Error reading check node tree from file!");
             chk_luts.set_length(max_iters);
             chk_luts(0).set_length(dc_act);
             for(int dd=0; dd<dc_act; dd++){
                 ss << "chk_deg_" << std::setfill('0') << std::setw(3) << chk_deg(dd);
                 boost::optional<std::string> cur_string = cur_tree->get_optional<std::string>( ss.str() );
-                it_assert(cur_string, "itpp::get_lut_tree_templates(): Could not load tree string for check node degree " << chk_deg(dd) << " at iteration 0");
+                it_assert(cur_string, "lut_ldpc::get_lut_tree_templates(): Could not load tree string for check node degree " << chk_deg(dd) << " at iteration 0");
                 chk_luts(0)(dd) = LUT_Tree(*cur_string, LUT_Tree::CHKTREE);
-                it_assert(chk_luts(0)(dd).get_num_leaves() == chk_deg(dd)-1, "itpp::get_lut_tree_templates(): LUT tree does not match node degree!");
+                it_assert(chk_luts(0)(dd).get_num_leaves() == chk_deg(dd)-1, "lut_ldpc::get_lut_tree_templates(): LUT tree does not match node degree!");
                 chk_luts(0)(dd).set_resolution(Nq_Msg(0), Nq_Msg(1));
                 ss.str(std::string());
                 ss.clear();
@@ -2774,9 +1228,9 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
                     for(int dd=0; dd<dc_act; dd++){
                         ss << "chk_deg_" << std::setfill('0') << std::setw(3) << chk_deg(dd);
                         boost::optional<std::string> cur_string  = cur_tree->get_optional<std::string>( ss.str() );
-                        it_assert(cur_string, "itpp::get_lut_tree_templates(): Could not load tree string for check node degree " << chk_deg(dd) << " at iteration " << ii << ".");
+                        it_assert(cur_string, "lut_ldpc::get_lut_tree_templates(): Could not load tree string for check node degree " << chk_deg(dd) << " at iteration " << ii << ".");
                         chk_luts(ii)(dd) = LUT_Tree(*cur_string, LUT_Tree::CHKTREE);
-                        it_assert(chk_luts(ii)(dd).get_num_leaves() == chk_deg(dd)-1, "itpp::get_lut_tree_templates(): LUT tree does not match node degree!");
+                        it_assert(chk_luts(ii)(dd).get_num_leaves() == chk_deg(dd)-1, "lut_ldpc::get_lut_tree_templates(): LUT tree does not match node degree!");
                         chk_luts(ii)(dd).set_resolution(Nq_Msg(ii), Nq_Msg(ii+1), Nq_Cha);
                         ss.str(std::string());
                         ss.clear();
@@ -2833,7 +1287,7 @@ void itpp::get_lut_tree_templates(const std::string& tree_method, const LDPC_Ens
 }
 
 
-vec itpp::joint_level_irr_lut_design(const vec& degree_dist, const ivec& degrees, Array<LUT_Tree>& lut_trees, vec& P_row, double& Pe)
+vec lut_ldpc::joint_level_irr_lut_design(const vec& degree_dist, const ivec& degrees, Array<LUT_Tree>& lut_trees, vec& P_row, double& Pe)
 {
     int L = length(degree_dist);
     it_assert( L == lut_trees.length(), "joint_level_irr_lut_design(): Input dimension mismatch!");
@@ -2885,7 +1339,7 @@ vec itpp::joint_level_irr_lut_design(const vec& degree_dist, const ivec& degrees
     return avg_pmf;
 }
 
-vec itpp::joint_root_irr_lut_design(const vec& degree_dist, const ivec& degrees, Array<LUT_Tree>& lut_trees, vec& P_row, double& Pe)
+vec lut_ldpc::joint_root_irr_lut_design(const vec& degree_dist, const ivec& degrees, Array<LUT_Tree>& lut_trees, vec& P_row, double& Pe)
 {
     int L = length(degree_dist);
     it_assert( L == lut_trees.length(), "joint_root_irr_lut_design(): Input dimension mismatch!");
@@ -2919,7 +1373,7 @@ vec itpp::joint_root_irr_lut_design(const vec& degree_dist, const ivec& degrees,
     return avg_pmf;
 }
 
-vec itpp::level_lut_tree_update(Array< deque<LUT_Tree_Node*> >& tree_nodes,  const vec& degree_dist, LUT_Tree::tree_type_t t)
+vec lut_ldpc::level_lut_tree_update(Array< deque<LUT_Tree_Node*> >& tree_nodes,  const vec& degree_dist, LUT_Tree::tree_type_t t)
 {
     int L = tree_nodes.size();
     it_assert(L == length(degree_dist), "level_lut_tree_update(): Dimension mismatch");
@@ -3009,50 +1463,10 @@ vec itpp::level_lut_tree_update(Array< deque<LUT_Tree_Node*> >& tree_nodes,  con
 }
 
 
-vec itpp::get_var_product_pmf(const Array<vec>& p_in){
-    // Build product distribution
-    int num_inputs = p_in.size();
-    vec p_Msg_prod = p_in(num_inputs-1);
-    
-    for(int ii=num_inputs-2; ii>=0; ii--){
-        p_Msg_prod = kron(p_Msg_prod, p_in(ii));
-    }
-    return p_Msg_prod;
-}
-
-vec itpp::get_chk_product_pmf(const Array<vec>& p_in){
-    // Build product distribution
-    int num_inputs = p_in.size();
-    ivec res_inputs(num_inputs);
-    for(int jj=0; jj<num_inputs; jj++){
-        res_inputs(jj) = p_in(jj).length();
-    }
-    
-    
-    vec p_Msg_prod0 = p_in(num_inputs-1);
-    vec p_Msg_prod1 = fliplr(p_in(num_inputs-1));
-    
-    // In this loop, in order to respect the label order, we have p_Msg_prod0  != fliplr(p_Msg_prod1) in general. Symmetry is restored by mapping signed to unsigned labels
-    for(int ii=num_inputs-2; ii>=0; ii--){
-        vec p_Msg_prod0_new = .5* (kron(p_Msg_prod0, p_in(ii))  + kron(p_Msg_prod1, fliplr(p_in(ii))));
-        vec p_Msg_prod1_new = .5* (kron(p_Msg_prod1, p_in(ii))  + kron(p_Msg_prod0, fliplr(p_in(ii))));
-        p_Msg_prod0 = p_Msg_prod0_new;
-        p_Msg_prod1 = p_Msg_prod1_new;
-    }
-    
-    vec p_Msg_prod_combined = zeros( 2*prod(res_inputs/2));
-    //re-order and combine labels
-    for (int mm=0; mm<length(p_Msg_prod0); mm++) {
-        // Map sign-based index to magnitude-based index, restoring symmetry
-        int mm_out = signed_to_unsigned_idx(mm, res_inputs);
-        p_Msg_prod_combined(mm_out) += p_Msg_prod0(mm);
-    }
-    
-    return p_Msg_prod_combined;
-}
 
 
-double itpp::get_lam2stable_qbp(double sig, vec rho, int Nq_Cha, double LLR_max, int Nq_fine){
+
+double lut_ldpc::get_lam2stable_qbp(double sig, vec rho, int Nq_Cha, double LLR_max, int Nq_fine){
     double delta = 2*LLR_max/Nq_fine;
     vec pmf_channel_fine = get_gaussian_pmf(2/sqr(sig), 2/sig, Nq_fine, delta);
     
@@ -3069,14 +1483,14 @@ double itpp::get_lam2stable_qbp(double sig, vec rho, int Nq_Cha, double LLR_max,
     return e_to_r / rho_dev_eval_one;
 }
 
-double itpp::get_lam2stable_cbp(double sig, vec rho){
+double lut_ldpc::get_lam2stable_cbp(double sig, vec rho){
     rho.del(0);
     int len_rho = rho.length();
     double rho_derivative_eval_0 =  sum(elem_mult(rho, linspace(1, len_rho, len_rho))); 
     return std::exp(1/(2*itpp::sqr(sig)))/rho_derivative_eval_0;
 }
 
-double itpp::get_lam2stable_qbp_iterative(double sig, vec rho, int Nq_Cha, double LLR_max, int Nq_fine){
+double lut_ldpc::get_lam2stable_qbp_iterative(double sig, vec rho, int Nq_Cha, double LLR_max, int Nq_fine){
     
     int Nbit = 13;
     int N = pow2i(Nbit-1);
@@ -3155,7 +1569,7 @@ double itpp::get_lam2stable_qbp_iterative(double sig, vec rho, int Nq_Cha, doubl
     return e_to_r / rho_dev_eval_one;
 }
 
-double itpp::get_lam2stable_lut(double sig, vec rho, int Nq_Cha, int Nq_Msg, double LLR_max, int Nq_fine){
+double lut_ldpc::get_lam2stable_lut(double sig, vec rho, int Nq_Cha, int Nq_Msg, double LLR_max, int Nq_fine){
     double delta = 2*LLR_max/Nq_fine;
     vec pmf_channel_fine = get_gaussian_pmf(2/sqr(sig), 2/sig, Nq_fine, delta);
     
@@ -3196,7 +1610,7 @@ double itpp::get_lam2stable_lut(double sig, vec rho, int Nq_Cha, int Nq_Msg, dou
     return e_to_r / rho_dev_eval_one;
 }
 
-std::ostream& itpp::operator<<(std::ostream &os, const LDPC_Ensemble &ens){
+std::ostream& lut_ldpc::operator<<(std::ostream &os, const LDPC_Ensemble &ens){
     TextTable l( '-', '|', '+' );
     l.add( "VN degrees" );
     for(int ii=0; ii<ens.dv_act; ii++){
@@ -3232,26 +1646,4 @@ std::ostream& itpp::operator<<(std::ostream &os, const LDPC_Ensemble &ens){
     return os;
 }
 
-inline double itpp::sig2snr(double rate, double sig){
-    return -10*std::log10(2*rate*itpp::sqr(sig));
-}
 
-inline double itpp::snr2sig(double rate, double snr){
-    return  itpp::pow10(-snr/20)/std::sqrt(2*rate);
-}
-
-vec itpp::sig2snr(double rate, const vec& sig){
-    int len = sig.length();
-    vec snr(len);
-    for(int ii=0; ii<len; ii++)
-        snr(ii) = sig2snr(rate, sig.get(ii));
-    return snr;
-}
-
-vec itpp::snr2sig(double rate, const vec&  snr){
-    int len = snr.length();
-    vec sig(len);
-    for(int ii=0; ii<len; ii++)
-        sig(ii) = snr2sig(rate, snr.get(ii));
-    return sig;
-}

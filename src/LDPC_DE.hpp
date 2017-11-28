@@ -9,379 +9,31 @@
  *
  */
 
-// LLRs are considered identical within this tolerance
-#define UNIQE_LLR_DELTA 0.0
+
 
 #ifndef LDPC_DE_hpp
 #define LDPC_DE_hpp
 
-#include <deque>
-#include <list>
+#include "LUT_Tree.hpp"
+#include "LDPC_Ensemble.hpp"
+
+
+
 #include <iostream>
 #include <itpp/itbase.h>
-#include <itpp/itcomm.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <iomanip>
 
 //! Git version of program
 extern const char *gitversion;
+using namespace itpp;
 
-namespace itpp{
+namespace lut_ldpc{
 
-// Forward Declatations
-class LUT_Tree;
-class LUT_Tree_Node;
-
-//! Store degree distribution is sparse form
-class LDPC_Ensemble{
-private:
-    /*! 
-     * Check consistency of ensemble.
-     */
-    inline void check_consistency();
-private:
-    vec rho;    //< check node degree distrivution (edge perspective) in sparse form
-    vec lam;    //< variable node degree distrivution (edge perspective) in sparse form
-    ivec degree_rho; //< nonzero check node degrees
-    ivec degree_lam; //< nonzero variable node degrees
-    int dv_act; //< number of nonzero variable node degrees
-    int dc_act; //< number of nonzero check node degrees
-    bool init_flag; //< true if the ensemble is defined completely and consistent 
-    /*!
-     * \brief Accepted deviation to probability mass one without an error
-     *
-     * When setting any degree distributions, an input check is performed to see wether
-     * the degree distributions sum to one, where deviations up to \c pmass_tolerance
-     * don't cause an error. Note that the input will still be normalized before assignemnt.
-     */
-    static const double pmass_tolerance;    
-public:
-    LDPC_Ensemble();
-    //! LDPC ensemble based on nonsparse degree distribution vectors. First element = degree 1
-    LDPC_Ensemble(const vec& l, const vec& r);
-    //! LDPC ensemble based on sparse degree distribution vectors
-    LDPC_Ensemble(const ivec& dl, const vec& l, const ivec& dr, const vec& r);
-    //! Read LDPC ensemble from file
-    LDPC_Ensemble(const std::string& filename);
-    
-    //! Read LDPC ensemble from .ens file
-    void read(const std::string& filename);
-    
-    //! Write LDPC ensemble to .ens file
-    void write(const std::string& filename) const;
-    
-    //! Export LDPC ensemble to .deg file
-    void export_deg(const std::string& filename) const;
-    
-    //! Get the rate of the ensemble
-    double get_rate() const;
-    
-    //! Get variable node degree distribution (edge perspective) in sparse form (non zeros only)
-    vec sget_lam()const;
-    //! Get variable node degree distribution (node perspective) in sparse form (non zeros only)
-    vec sget_Lam()const;
-    //! Get variable node degree distribution and degrees (edge perspective) in sparse form (non zeros only). Returns the number of active degrees
-    int sget_lam(vec& l, ivec& dl)const;
-    
-    //! Get check node degree distribution (edge perspective) in sparse form (non zeros only)
-    vec sget_rho()const;
-    //! Get check node degree distribution (node perspective) in sparse form (non zeros only)
-    vec sget_Rho()const;
-    //! Get check node degree distribution and degrees (edge perspective) in sparse form (non zeros only). Returns the number of active degrees
-    int sget_rho(vec& r, ivec& dr)const;
-    
-    //! Get nonzero variable node degrees
-    ivec sget_degree_rho()const;
-    //! Get nonzero check node degrees
-    ivec sget_degree_lam()const;
-    
-    //! Get number of nonzero variable node degrees
-    int get_dv_act() const;
-    //! Get number of nonzero check node degrees
-    int get_dc_act() const;
-    
-    //! Return check node degree distribution (edge perspective) in non-sparse form. First index = degree 1
-    vec get_chk_degree_dist() const;
-    //! Return variable node degree distribution (edge perspective) in non-sparse form. First index = degree 1
-    vec get_var_degree_dist() const;
-
-    //! Set check node degree distribution (edge perspective) in non-sparse form. First index = degree 1
-    void set_chk_degree_dist(const vec& r);
-    //! Set variable node degree distribution (edge perspective) in non-sparse form. First index = degree 1
-    void set_var_degree_dist(const vec& l);
-    
-    //! Set check node edge distribution in sparse form
-    void sset_rho(vec r);
-    //! Set variable node edge distribution in sparse form
-    void sset_lam(vec l);
-    
-    //! Get probability mass of VN edge degree \c d 
-    double get_lam_of_degree(int d) const;
-    //! Print properties of the LDPC ensemble
-    friend std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
-    
-};
-
-//! Container class for a tree consisting of LUT_Tree_Nodes
-class LUT_Tree{
-    public:
-        enum tree_type_e{
-            VARTREE,
-            CHKTREE,
-            DECTREE,
-            num_tree_types
-        }typedef tree_type_t;
-        
-        
-        //! Default constructor, empty tree
-        LUT_Tree() : root(nullptr), num_leaves(0) {}
-        //! Construct a LUT tree from a string
-        LUT_Tree(const std::string& tree_string, tree_type_t t);
-        //! Automatically construct a LUT tree of type \c t with \c l leave nodes using method \c m
-        LUT_Tree(int l , tree_type_t t , const std::string& m = "auto_bin_balanced");
-        //! Copy Constructor
-        LUT_Tree(const LUT_Tree& other);
-        //! Move Constructor
-        LUT_Tree(LUT_Tree && other);
-        //! Copy/Move Assignment
-        LUT_Tree& operator=(LUT_Tree rhs);
-        //! Destructor
-        ~LUT_Tree();
-        
-        
-        friend std::ostream& operator<<(std::ostream &os, const LUT_Tree &t);
-        friend std::istream& operator>>(std::istream &is, LUT_Tree &t);
-        
-        //=========== Wrapper functions
-        
-        //! Returns the cumulated distance of leaf nodes to the tree root
-        int get_metric() const;
-        //! Set the distribution of the leave nodes
-        void set_leaves(const vec& p_Msg, const vec& p_Cha);
-        //! Set the resolution of non-root, non-channel nodes to \c Nq_in, the resolution of the root node to \c Nq_out and the resolution of channel LLRs to \c Nq_Cha
-        void set_resolution(int Nq_in, int Nq_out, int Nq_cha = 0);
-        //! Write tikz code representing the tree to \c outstream
-        void tikz_draw_tree(std::ostream& outstream) const;
-        //! Write tikz code representing the tree to the file \c filename
-        void tikz_draw_tree(const std::string& filename) const;
-        //! Get the number of leaf nodes
-        int get_num_leaves() const;
-        
-        //! Output tree structure string
-        std::string gen_template_string();
-        
-        
-        //! Get Tree type
-        tree_type_t get_type() const {return this->type;}
-        /*!
-         \brief Updates the non-leaf nodes of the tree by propagating the distribution of the leave nodes to the root via DE
-         
-         This function is used to update the pmfs of the non-leaf nodes by propagating the distributions of the leave nodes to the root via Density Evolution.
-         If \c reuse is true, the quantizers already present within the tree are used for the updates.
-         If \c reuse is false, the quantizers are updated as well. The new quangtizers are designed to maximize the local information flow through the tree.
-         
-         @param[out]    p_out       message pmf at the output of the root node after the update
-         @param[out]    mi          mutual information between coded bit and messages at the output of the root node after the update
-         @param[in]     reuse       wether new quantizers should be designed or the old ones should be reused
-         @param[in]     fp          a function po
-         */
-        vec update(bool reuse = false);
-        
-        //! Set the size of the pmfs of all nodes to zero
-        void reset_pmfs();
-        
-        
-        //! Variable node message update
-        ivec var_msg_update(std::deque<int>& msg_que_all, int llr);
-        //! Check node message update
-        ivec chk_msg_update(std::deque<int>& msg_que_all);
-        //! Decision node llr calculation
-        int dec_update(std::deque<int>& msg_que_all, int llr);
-        
-        
-        //! Append pointers to all nodes of the requested level to \c nodes
-        void get_level_nodes(int level, std::deque<LUT_Tree_Node*>& nodes);
-        
-        //! Append pointers to all nodes of the requested level to \c nodes
-        std::deque<LUT_Tree_Node*> get_level_nodes(int level);
-        
-        //! Returns the number of levels of the tree
-        int get_height() const;
-        
-        
-    private:
-        //! Swaps the objects \c a and \c b
-        void swap(LUT_Tree& a, LUT_Tree& b);
-        //! Local update of a varaible tree node
-        static void var_update(vec& p_out, ivec& Q_out, const Array<vec>& p_in, int Nq, bool reuse);
-        //! Locak update if a check tree node
-        static void chk_update(vec& p_out, ivec& Q_out, const Array<vec>& p_in, int Nq, bool reuse);
-        
-        
-        
-        
-    private:
-        //! Pointer to root node
-        LUT_Tree_Node* root;
-        //! Number of tree leaves
-        int num_leaves;
-        //! Define wether the tree represents a variable or check node update
-        tree_type_t type;
-    };
-    
-    //! Print Information about the LDPC ensemble
-    std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
-    
-    //Tree I/O
-    std::ostream& operator<<(std::ostream &is, const LUT_Tree &t);
-    std::istream& operator>>(std::istream &os, LUT_Tree &t);
-    
-    std::istream& operator>>(std::istream &is, Array<Array<LUT_Tree>> &t);
-    std::ostream& operator<<(std::ostream &os, const Array<Array<LUT_Tree>> &t);
-
-//! Super class of all other node nypes
-class LUT_Tree_Node{
-
-friend class LUT_Tree;
-private:
-    enum node_type_e{
-        IM,
-        ROOT,
-        MSG,
-        CHA,
-        num_node_types
-    }typedef node_type_t;
-    
-    friend std::ostream& operator<<(std::ostream &os, const LUT_Tree &t);
-    friend std::istream& operator>>(std::istream &is, LUT_Tree &tree);
-    friend vec joint_level_irr_lut_design(const vec& degree_dist,const ivec& degrees, Array<LUT_Tree>& lut_trees, vec& P_row, double& Pe);
-    friend vec level_lut_tree_update(Array< std::deque<LUT_Tree_Node*> >& tree_nodes,  const vec& degree_dist, LUT_Tree::tree_type_t t);
-    
-    //! children of the node
-    std::deque<LUT_Tree_Node*> children;
-    //! quantizer map
-    ivec Q;
-    //! pmf
-    vec p;
-    //! Type of node
-    node_type_t type;
-    //! number of elements of p and range of Q
-    int K;
-    
-    //! Calls add_child_back()
-    void add_child(LUT_Tree_Node* child);
-    //! Calls add_child_back()
-    void add_child(node_type_t t);
-    
-    //! Add a child at the end of the children deque
-    void add_child_back(LUT_Tree_Node* child);
-    //! Create a new node of type \t and add it at the end of the children deque of the calling node
-    void add_child_back(node_type_t t);
-    
-    //! Add a child at the beginning of the children deque
-    void add_child_front(LUT_Tree_Node* child);
-    //! Create a new node of type \t and add it at the beginning of the children deque of the calling node
-    void add_child_front(node_type_t t);
-    
-    LUT_Tree_Node(node_type_t t);
-    
-    
-    //! Constructor based on input stream
-    LUT_Tree_Node(std::istream& is);
-    //! Return a string representing the data in the node
-    std::string node_to_string();
-    
-    LUT_Tree_Node* deep_copy();
-    int get_metric(int l=0);
-    
-    //! Set the pmfs of the leave nodes
-    void set_leaves(const vec& p_Msg, const vec& p_Cha);
-    //! Set the resolution of the tree. ROOT nodes are set to have a resolution of \c Nq_out, CHA nodes \c Nq_cha and all others Nq_in
-    void set_resolution(int Nq_in, int Nq_out, int Nq_cha = 0);
-    
-    //! Returns the number of levels of the tree
-    int get_height() const;
-    
-    vec tree_update( bool reuse,
-                     void (*fp)(vec&, ivec&, const Array<vec>&, int, bool));
-    /*!
-     This function writes  can be saved to a file
-     and compiled using e.g., tikz2pdf or with pdflatex if it is
-     wrapped appropriately. Most likely, the sibling distance
-     needs to be ajusted mannually for the tree nodes not to
-     overlap.
-     */
-    void tikz_draw_tree(std::ostream& outstream);
-    void tikz_draw_tree(const std::string& filename);
-    void tikz_draw_recursive(std::ostream& outstream, int level=0);
-    /*!
-     \brief Builds a dynamic LUT tree based on the input string \c s
-     */
-    static LUT_Tree_Node* parse(std::istream& instream);
-    /*!
-     \brief This function behaves inverse to parse: It generates a tree template string
-     */
-    void gen_template_string(std::string& ss);
-    
-    /*!
-     This function returns a tree of \c num_leaves leaves.
-     If var == true,
-     the tree is created in the following way:  Create binary with dv-1 leaves that is as balanced as possible
-     Subsequently attach this tree and a new leave for the channel LLR to a newly created root node 
-     If var == false, the attaching of a channel LLR node is skipped.
-     */
-    static LUT_Tree_Node* gen_bin_balanced_tree(int num_leaves, bool var, node_type_t leaf_type = MSG);
-    
-    /*!
-     This function returns a tree of \c num_leaves leaves.
-     The tree is binary and has maximum height, thus resembling the approach of 
-        Lewandowsky et al.: Trellis based node operations for LDPC decoders from the Information Bottleneck method
-        Romero et al.: Decoding LDPC codes with mutual information-maximizing lookup tables
-        Kurkoski et al.: Noise Thresholds for Discrete LDPC Decoding Mappings
-     */
-    static LUT_Tree_Node* gen_bin_high_tree(int num_leaves, bool var, node_type_t leaf_type = MSG);
-    
-    /*!
-        Generate a tree that only consists of a root node with all messages/ LLRs directly attached to it
-    */
-    static LUT_Tree_Node* gen_root_only_tree(int num_leaves, bool var, node_type_t leaf_type = MSG);
-    
-    //! Delete all descendant nodes
-    void delete_tree();
-    
-    //! Traverse nodes to free the memory allocated for pmfs
-    void reset_pmfs();
-    
-    //! Return the number of leaf nodes
-    int get_num_leaves();
-    
-    //! Return the number of LUT nodes
-    int get_num_luts();
-    
-    //! Calculate LUT tree output for input messages \c msgs incident to the leaf nodes
-    int var_msg_update(std::deque<int>& msgs);
-    
-    //! Calculate LUT tree output for input messages \c msgs incident to the leaf nodes
-    int chk_msg_update(std::deque<int>& msgs);
-
-    /*!
-    \brief Serialize the tree recursively
-    */
-    void serialize_tree(std::ostream& os);
-    /*!
-    \brief Deserialize the tree recursively
-    */
-    static LUT_Tree_Node* deserialize_tree(std::istream& is);
-    
-    //! get the product pmf of the nodes children
-    vec get_input_product_pmf(LUT_Tree::tree_type_t t) const;
-    
-    //! return pointers to all nodes (\c level_nodes) of a certain level \c req_level
-    void get_level_nodes(int req_level, int cur_level, std::deque<LUT_Tree_Node*>& level_nodes);
-};
 
     
+
 class LDPC_DE
 {
 public:
@@ -672,36 +324,14 @@ private:
 
 
     
-/*!
- * Compute the mutual information optimal quantizer for the symmetric pmf p_in. Returns the resulting Mutual information
- *
- * @param[out] p_out    Conditional length Nq output pmf
- * @param[out] Q_out    Quantizer designed to maximize the mutual informatio \c mi. Implementation wise, this is a
- *                      length M vectors with integer elements in 0,1,...,\c Nq-1
- * @param[in]  p_in     Conditional input pmf of length M. It is assumed, that this is a symmetric conditional pmf, where the conditional random variable X is uniform and binary:
- *                      i.e., p(y|x) = p(-y|-x), where p_in[M/2+i-1] = p(i|1), i=-M/2,...,M/2
- * @param[in]  Nq       Number of quantizer outputs
- * @param[in]  Q_old    If the quanzizer should be reused rather than designed, this is indicated by passing a vector \c Q_old with length > 0
- */
-double quant_mi_sym(vec& p_out, ivec& Q_out, const vec& p_in, int Nq, bool sorted = false);
+
    
     
-/*!
- * \brief
- * Returns a symmetric pmf with unique LLRs and the corresponding indices.
- *
- *
- * @returns	 Returns a symmetric pmf with unique LLRs and the corresponding indices
- * @param[in]   p_in        An arbitrary, unsorted, conditional pmf.
- * @param[out]  idx_in      sorting index of input pmf according to LLR
- * @param[out]  idx_sorted  index mapping input to unique pmf
- */
-vec sym_llr_sort_unique(const vec& p_in, ivec& idx_in, ivec& idx_sorted, double llr_delta = UNIQE_LLR_DELTA);
+
     
 vec chk_update_minsum(const vec& p_in, int dc);
 
-//! Calculate the mutual information between X and Y, where p(y|x)=p(-y|-x) is given by p_in and X is binary and uniform
-double get_mi_bcpmf_sym(const vec& p);
+
     
 inline vec pmf_plus(const vec& pmf);
 inline vec pmf_minus(const vec& pmf);
@@ -709,39 +339,15 @@ inline vec pmf_join(const vec& pmf_p, const vec& pmf_m);
 
     
 
-int quant_nonlin(double x, const vec& boundaries);
-int quant_lin(double x, double delta, int N);
-ivec quant_nonlin(const vec& x, const vec& boundaries);
-/*! \brief Get quantized Gaussian pmfs with N quantization intervals (2 Overload and
- N -2) inner regions. For N odd, this is quantization with 0, with N even there is no zero.
- */
-vec get_gaussian_pmf(double mu, double sig, int N, double delta);
 
-double rate_to_shannon_thr(double R);
-double shannon_thr_to_rate(double sig);
+    
     
 
-inline double x_log2_y(double x, double y);
-    
-template <class Num_T> Vec<Num_T> fliplr(const Vec<Num_T>& x);
-template <class Num_T> Vec<Num_T> unique(const Vec<Num_T>& x);
-template <class Num_T> Vec<Num_T> kron(const Vec<Num_T>& x, const Vec<Num_T>& y);
-    
-LDPC_Ensemble get_empirical_ensemble(const LDPC_Parity& H);
-    
-template <class Num_T> ivec sort_index_sym(const Vec<Num_T>& x);
-template<class Num_T> ivec get_complement_idx(const Vec<Num_T>& a, const Vec<Num_T>& b,  Num_T c);
-    
-int signed_to_unsigned_idx(int idx, const ivec& inres);
     
 void get_lut_tree_templates(const std::string& tree_method, const LDPC_Ensemble& ens, ivec Nq_Msg, int Nq_Cha, bool minLUT, Array<Array<LUT_Tree> >& var_luts, Array<Array<LUT_Tree> >& chk_luts );
     
 
-//! Get the product distribution for a variable node with input probabilities p_in
-vec get_var_product_pmf(const Array<vec>& p_in);
 
-//! Get the product distribution for a check node with input probabilities p_in
-vec get_chk_product_pmf(const Array<vec>& p_in);
 
 /*!
  \brief Design trees by taking into account the edge distribution of an irregular LDPC Code
@@ -767,16 +373,7 @@ double get_lam2stable_cbp(double sig, vec rho);
 //! Calculate the maximum stable VN edge degree 2 for a given check node degree, assuming LUT decoding
 double get_lam2stable_lut(double sig, vec rho, int Nq_Cha, int Nq_Msg, double LLR_max=25, int Nq_fine=5000);
     
-//! Convert SNR (=Eb/N0 in dB) to corresponding AWGN channel noise standard deviation
-inline double snr2sig(double rate, double snr);
-//! Convert AWGN channel noise standard deviation to SNR (=Eb/N0 in dB) 
-inline double sig2snr(double rate, double sig);
 
-//! Convert AWGN channel noise standard deviation to SNR (=Eb/N0 in dB) 
-vec sig2snr(double rate, const vec& sig);
-
-//! Convert SNR (=Eb/N0 in dB) to corresponding AWGN channel noise standard deviation
-vec snr2sig(double rate, const vec& snr);
 
 }
 #endif
