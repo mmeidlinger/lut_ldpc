@@ -1,13 +1,12 @@
 #include "CyclesOfGraph.h"
 
-using namespace std;
-
-NodesOfGraph::NodesOfGraph(void) {//parityConnections=NULL;symbolConnections=NULL;
+NodesOfGraph::NodesOfGraph(void) { parityConnections=NULL;symbolConnections=NULL;
 }
 NodesOfGraph::~NodesOfGraph(void) {
   delete [] parityConnections;
   delete [] symbolConnections;
   delete [] symbolMapping;
+
 }
 
 void NodesOfGraph::setParityConnections(int num, int *value) {
@@ -189,6 +188,7 @@ int CyclesOfGraph::girth(void) {
 }
 
 void CyclesOfGraph::printCyclesTable(void){
+  using namespace std;
   int i, temp[20];
   /*
   for(i=0;i<N;i++)

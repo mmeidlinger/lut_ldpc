@@ -13,34 +13,28 @@
 /*        Bug reporting to: xhu@zurich.ibm.com                          */
 /**********************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+////
+// Modified by F. P. Beekhof; 2008 / 08 / 19
+////
+
+#include <cstdlib>
+#include <cstring>
+#include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <math.h>
+#include <cmath>
+#include <vector>
 #include "BigGirth.h"
 #include "Random.h"
 #include "CyclesOfGraph.h"
 
-#define EPS  1e-6
+const double EPS = 1e-6;
 
 using namespace std;
 
-int main(int argc, char * argv[]){
-  int i, j, m, N, M;
-  int sglConcent=1;  // default to non-strictly concentrated parity-check distribution
-  int targetGirth=100000; // default to greedy PEG version 
-  char codeName[100], degFileName[100];
-  int *degSeq, *deg;
-  double *degFrac;
-  BigGirth *bigGirth;
-  CyclesOfGraph *cog;
-
-  int numArgs=(argc-1)/2;
-  if (argc<9) {
-  USE:
+void usage()
+{
     cout<<"*******************************************************************************************"<<endl;
     cout<<" Usage Reminder: MainPEG -numM M -numN N -codeName CodeName -degFileName DegFileName " <<endl;
     cout<<"         option:         -sglConcent SglConcent                                     " <<endl; 
@@ -50,6 +44,13 @@ int main(int argc, char * argv[]){
     cout<<"         option:         -tgtGirth TgtGirth                                          " <<endl; 
     cout<<"                  TgtGirth==4, 6 ...; if very large, then greedy PEG (DEFAULT)       " <<endl;
     cout<<"                  IF sglConcent==0, TgtGirth is recommended to be set relatively small" <<endl;
+    cout<<"         option:         -q                                          " <<endl; 
+    cout<<"                  Quiet mode. Produces less output to the screen.       " <<endl;
+    cout<<"         option:         -outputMode <0,1,2>                                    " <<endl;
+    cout<<"                  Specifies output format.      " <<endl;
+    cout<<"                  '0': H in compressed format (default)       " <<endl;
+    cout<<"                  '1': H in un-compressed format       " <<endl;
+    cout<<"                  '2': G and H in compressed format       " <<endl;
     cout<<"                                                                                       " <<endl;
     cout<<" Remarks: File CodeName stores the generated PEG Tanner graph. The first line contains"<<endl;
     cout<<"          the block length, N. The second line defines the number of parity-checks, M."<<endl;
@@ -58,6 +59,14 @@ int main(int argc, char * argv[]){
     cout<<"          Each of the M rows contains the indices (1 ... N) of 1's in the compressed  "<<endl;
     cout<<"          row of parity-check matrix. If not all column entries are used, the column  "<<endl;
     cout<<"          is filled up with 0's.                                                      "<<endl;
+    cout<<"                                                                                      "<<endl;
+    cout<<"          If both G and H are in the output, (outMode 2), the first line contains"<<endl;
+    cout<<"          N, the 2nd line K, the number of message bits, the 3rd line M, the 4th line"<<endl;
+    cout<<"          contains the number of rows of the compressed generator matrix; the 5th"<<endl;
+    cout<<"          defines the number of columns of the compressed parity-check matrix. The"<<endl;
+    cout<<"          format of G is almost like that of H, but vertical -- i.e. the padding"<<endl;
+    cout<<"          zeroes are on the bottom.   "<<endl;
+
     cout<<"                                                                                      "<<endl;
     cout<<"          File DegFileName is the input file to specify the degree distribution (node "<<endl;
     cout<<"          perspective). The first line contains the number of various degrees. The second"<<endl;
@@ -74,79 +83,116 @@ int main(int argc, char * argv[]){
     cout<<"          compared to the generic PEG algorithm.                                         "<<endl;
     cout<<"**********************************************************************************************"<<endl;
     exit(-1);
+}
+
+int main(int argc, char * argv[]){
+  int sglConcent=1;  // default to non-strictly concentrated parity-check distribution
+  int targetGirth=100000; // default to greedy PEG version 
+  std::string codeName, degFileName;
+  int M = -1, N = -1;
+  bool verbose = true;
+
+  const int OUTPUT_MODE_H_COMPRESSED = 0;
+  const int OUTPUT_MODE_H = 1;
+  const int OUTPUT_MODE_G_H_COMPRESSED = 2;
+  int output_mode = OUTPUT_MODE_H_COMPRESSED; // default
+
+  if (argc<9) {
+    usage();
   }else {
-    for(i=0;i<numArgs;i++){
-      if (strcmp(argv[2*i+1], "-numM")==0) {
-	M=atoi(argv[2*i+2]);
-      } else if(strcmp(argv[2*i+1], "-numN")==0) {
-	N=atoi(argv[2*i+2]);
-      } else if(strcmp(argv[2*i+1], "-codeName")==0) {
-	strcpy(codeName, argv[2*i+2]); 
-      } else if(strcmp(argv[2*i+1], "-degFileName")==0) {
-	strcpy(degFileName, argv[2*i+2]); 
-      } else if(strcmp(argv[2*i+1], "-sglConcent")==0) {
-	sglConcent=atoi(argv[2*i+2]);
-      } else if(strcmp(argv[2*i+1], "-tgtGirth")==0) {
-	targetGirth=atoi(argv[2*i+2]);
+    for(int i=1;i<argc;++i){
+      if (strcmp(argv[i], "-numM")==0) {
+	if (++i >= argc) usage();
+	M=atoi(argv[i]);
+      } else if(strcmp(argv[i], "-numN")==0) {
+	if (++i >= argc) usage();
+	N=atoi(argv[i]);
+      } else if(strcmp(argv[i], "-codeName")==0) {
+	if (++i >= argc) usage();
+	codeName = argv[i]; 
+      } else if(strcmp(argv[i], "-degFileName")==0) {
+	if (++i >= argc) usage();
+	degFileName = argv[i]; 
+      } else if(strcmp(argv[i], "-sglConcent")==0) {
+	if (++i >= argc) usage();
+	sglConcent=atoi(argv[i]);
+      } else if(strcmp(argv[i], "-tgtGirth")==0) {
+	if (++i >= argc) usage();
+	targetGirth=atoi(argv[i]);
+      } else if(strcmp(argv[i], "-outputMode")==0) {
+	if (++i >= argc) usage();
+	output_mode=atoi(argv[i]);
+      } else if(strcmp(argv[i], "-q")==0) {
+	verbose=false;
       } else{
-    goto USE;
+	usage();
       }
     }
-    if(M>N) {
-      cout<<"Warning: M must be samller than N"<<endl;
+    if (M == -1 || N == -1) {
+      cout<<"Error: M or N not specified!"<<endl;
+      exit(-1);
+    }
+    if (M>N) {
+      cout<<"Error: M must be smaller than N!"<<endl;
       exit(-1);
     }
   }
 
-  degSeq=new int[N];
+  std::vector<int> degSeq(N);
 
-  ifstream infn(degFileName);
+  ifstream infn(degFileName.c_str());
   if (!infn) {cout << "\nCannot open file " << degFileName << endl; exit(-1); } 
+  int m;
   infn >>m;
-  deg=new int[m];
-  degFrac=new double[m];
-  for(i=0;i<m;i++) infn>>deg[i];
-  for(i=0;i<m;i++) infn>>degFrac[i];
-  infn.close();  
+  std::vector<int> deg(m);
+  std::vector<double> degFrac(m);
+  for(int i=0;i<m;i++) infn>>deg[i];
+  for(int i=0;i<m;i++) infn>>degFrac[i];
+  infn.close();
   double dtmp=0.0;
-  for(i=0;i<m;i++) dtmp+=degFrac[i];
+  for(int i=0;i<m;i++) dtmp+=degFrac[i];
   cout.setf(ios::fixed, ios::floatfield);
-  if(fabs(dtmp-1.0)>EPS) {
+  if(abs(dtmp-1.0)>EPS) {
     cout.setf(ios::fixed, ios::floatfield);
     cout <<"\n Invalid degree distribution (node perspective): sum != 1.0 but "<<setprecision(10)<<dtmp<<endl; exit(-1); 
   } 
-  for(i=1;i<m;i++) degFrac[i]+=degFrac[i-1];
-  for(i=0;i<N;i++) {
-    dtmp=(double)i/N;
-    for(j=m-1;j>=0;j--) {
+  for(int i=1;i<m;++i) degFrac[i]+=degFrac[i-1];
+  for(int i=0;i<N;++i) {
+    dtmp=double(i)/double(N);
+    int j;
+    for(j=m-1;j>=0;--j) {
       if(dtmp>degFrac[j]) break;
     }
     if(dtmp<degFrac[0]) degSeq[i]=deg[0];
     else degSeq[i]=deg[j+1];
   }
 
-  bigGirth=new BigGirth(M, N, degSeq, codeName, sglConcent, targetGirth);
+  BigGirth bigGirth(M, N, &degSeq[0], codeName.c_str(),
+		    sglConcent, targetGirth, verbose);
 
-  (*bigGirth).writeToFile_Hcompressed();
-  //(*bigGirth).writeToFile_Hmatrix()        //  different output format
-  //(*bigGirth).writeToFile();               //  different output format: including generator matrix (compressed)
+  switch(output_mode)
+  {
+	case OUTPUT_MODE_H_COMPRESSED: bigGirth.writeToFile_Hcompressed(); break;
+  	case OUTPUT_MODE_H:   //  different output format
+		bigGirth.writeToFile_Hmatrix(); break;
+	case OUTPUT_MODE_G_H_COMPRESSED:
+	//  different output format: including generator matrix (compressed)
+		bigGirth.writeToFile(); break;
+	default:
+		cout << "Error: invalid output mode specified." << endl << endl;
+		usage();
+  }
   
   //computing local girth distribution  
-  if(N<10000) {
+
+  if (verbose && N<10000) {
     cout<<" Now computing the local girth on the global Tanner graph setting. "<<endl;
     cout<<"     might take a bit long time. Please wait ...                   "<<endl;
-    (*bigGirth).loadH();
-    cog=new CyclesOfGraph(M, N, (*bigGirth).H);
-    (*cog).getCyclesTable();
-    (*cog).printCyclesTable();
-    delete cog;
-    cog=NULL;
+    bigGirth.loadH();
+    CyclesOfGraph cog(M, N, bigGirth.H);
+    cog.getCyclesTable();
+    cog.printCyclesTable();
   }
-
-  delete [] degSeq;  degSeq=NULL;
-  delete [] deg; deg=NULL;
-  delete [] degFrac; degFrac=NULL;
-  delete bigGirth;
 }
 
 

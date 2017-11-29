@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include "BigGirth.h"
@@ -7,7 +7,10 @@
 
 using namespace std;
 
-NodesInGraph::NodesInGraph(void) {;}
+NodesInGraph::NodesInGraph(void) {
+  connectionParityBit=NULL;
+  connectionSymbolBit=NULL;
+}
 
 void NodesInGraph::setNumOfConnectionSymbolBit(int deg) {
   if(deg<=0) {cout<<"Wrong NodesInGraph::setNumOfConnectionSymbolBit()"<<endl;exit(-1);}
@@ -25,19 +28,13 @@ void NodesInGraph::initConnectionParityBit(int deg) {
   connectionParityBit=new int[1];//dummy memory, actually not used
 }
 NodesInGraph::~NodesInGraph(void) {
-  if(connectionParityBit!=NULL)
     delete [] connectionParityBit;
-  if(connectionSymbolBit!=NULL)
     delete [] connectionSymbolBit;
 }
 
-BigGirth::BigGirth(void): H(NULL), filename(NULL), localGirth(NULL)  {;}
+BigGirth::BigGirth(void) : H(NULL), verbose(true) { }
 
-BigGirth::BigGirth(int M, int N, int *symbolDegSequence, char *filename, int sglConcent, int tgtGirth): 
-    H(NULL), 
-    filename(NULL), 
-    localGirth(NULL)
-{
+BigGirth::BigGirth(int M, int N, int *symbolDegSequence, const char *filename, int sglConcent, int tgtGirth, bool verbose_) : H(NULL), verbose(verbose_) {
   int i, j, k, m, index, localDepth=100;
   int *mid;
 
@@ -50,9 +47,9 @@ BigGirth::BigGirth(int M, int N, int *symbolDegSequence, char *filename, int sgl
 
   myrandom=new Random();  //(12345678l, 987654321lu);
 
-  (*this).M=M;
-  (*this).N=N;
-  (*this).filename=filename;
+  this->M=M;
+  this->N=N;
+  this->filename=filename;
 
   mid=new int[M];
 
@@ -95,19 +92,22 @@ BigGirth::BigGirth(int M, int N, int *symbolDegSequence, char *filename, int sgl
       if(localGirth[k]==0 && iter<30) {iter++; goto ITER;}
     }
     //if((k+1)%100==0) {
+    if(verbose) {
       cout<<"k="<<k<<"  ";
       for(m=0;m<nodesInGraph[k].numOfConnectionSymbolBit;m++)
 	cout<<nodesInGraph[k].connectionSymbolBit[m]<<" ";
       cout<<"LocalGirth="<<2*localGirth[k]+4;
       cout<<endl;
-      //}
+    }
     updateConnection(k);
   }
 
-  cout<<"Showing the row weight distribution..."<<endl;
-  for(i=0;i<M;i++)
-    cout<<nodesInGraph[i].numOfConnectionParityBit<<" ";
-  cout<<endl;
+  if(verbose) {
+    cout<<"Showing the row weight distribution..."<<endl;
+    for(i=0;i<M;i++)
+      cout<<nodesInGraph[i].numOfConnectionParityBit<<" ";
+    cout<<endl;
+  }
   delete [] mid;
 
   ofstream cycleFile;
@@ -121,9 +121,11 @@ BigGirth::BigGirth(int M, int N, int *symbolDegSequence, char *filename, int sgl
   cycleFile<<endl;
   cycleFile.close();
 
-  cout<<"*************************************************************"<<endl;
-  cout<<"       The global girth of the PEG Tanner graph :="<< 2*localDepth+4<<endl;
-  cout<<"*************************************************************"<<endl;
+  if(verbose) {
+    cout<<"*************************************************************"<<endl;
+    cout<<"       The global girth of the PEG Tanner graph :="<< 2*localDepth+4<<endl;
+    cout<<"*************************************************************"<<endl;
+  }
 
   loadH();
 
@@ -143,7 +145,7 @@ BigGirth::~BigGirth(void) {
 }
 
 int BigGirth::selectParityConnect(int kthSymbol, int mthConnection, int & cycle) {
-  int i, j, k, index, mincycles, numCur, numNext, cpNumCur;
+  int i, j, k, index, mincycles, numCur, cpNumCur;
   int *tmp, *med;
   int *current;//take note of the covering parity bits
 
@@ -411,7 +413,8 @@ void BigGirth::writeToFile(void){
     }
   }
 
-  cout<<"Row rank of parity check matrix="<<M-redun<<endl;
+  if(verbose)
+    cout<<"Row rank of parity check matrix="<<M-redun<<endl;
 
   K=N-M+redun;//num of the information bits
 
@@ -425,7 +428,7 @@ void BigGirth::writeToFile(void){
       index++;
     }
   }
-  if(index!=M-redun) {cout<<"ERRor...if(index!=M-redun)"<<endl;exit(-1);}
+  if(index!=M-redun) {cout<<"ERROR...if(index!=M-redun)"<<endl;exit(-1);}
 
   for(k=index-1;k>0;k--){
     for(i=k-1;i>=0;i--){
@@ -435,9 +438,11 @@ void BigGirth::writeToFile(void){
     }
   }  
  
-  cout<<"****************************************************"<<endl;
-  cout<<"      Computing the compressed generator"<<endl;
-  cout<<"****************************************************"<<endl;
+  if(verbose) {
+    cout<<"****************************************************"<<endl;
+    cout<<"      Computing the compressed generator"<<endl;
+    cout<<"****************************************************"<<endl;
+  }
   generator=new int * [K];
   for(i=0;i<K;i++)
     generator[i]=new int[N-K];
@@ -473,9 +478,11 @@ void BigGirth::writeToFile(void){
     for(i=0;i<max_row;i++) generator_compressed[i][j+N-K]=0;
     generator_compressed[0][j+N-K]=j+1;
   }
-  cout<<"*****************************************************"<<endl;
-  cout<<"     Computing the compressed parity-check matrix"<<endl;
-  cout<<"*****************************************************"<<endl;  
+  if(verbose) {
+    cout<<"*****************************************************"<<endl;
+    cout<<"     Computing the compressed parity-check matrix"<<endl;
+    cout<<"*****************************************************"<<endl;  
+  }
   //finding the num of columns, l, of the compressed parity-check matrix
   loadH(); //loading parity check matrix again
   max_col=0;
@@ -499,9 +506,11 @@ void BigGirth::writeToFile(void){
       }
     }
   }
-  cout<<"****************************************************"<<endl;
-  cout<<"      Write to file (TEXT!) "<<endl;
-  cout<<"****************************************************"<<endl;  
+  if(verbose) {
+    cout<<"****************************************************"<<endl;
+    cout<<"      Write to file (TEXT!) "<<endl;
+    cout<<"****************************************************"<<endl;  
+  }
   ofstream codefile;  
   codefile.open(filename,ios::out);
   codefile<<N<<endl;
@@ -524,9 +533,11 @@ void BigGirth::writeToFile(void){
   codefile<<endl;
 
   codefile.close();
-   cout<<"****************************************************"<<endl;
-  cout<<"      Free memory"<<endl;
-  cout<<"****************************************************"<<endl;
+  if(verbose) {
+    cout<<"****************************************************"<<endl;
+    cout<<"      Free memory"<<endl;
+    cout<<"****************************************************"<<endl;
+  }
   delete [] Index;
   Index=NULL;
   delete [] J;
@@ -552,9 +563,11 @@ void BigGirth::writeToFile(void){
   delete [] generator;
   generator=NULL;
   
-  cout<<"****************************************************"<<endl;
-  cout<<"      OK!"<<endl;
-  cout<<"****************************************************"<<endl;   
+  if(verbose) {
+    cout<<"****************************************************"<<endl;
+    cout<<"      OK!"<<endl;
+    cout<<"****************************************************"<<endl;
+  }
 
 }
 

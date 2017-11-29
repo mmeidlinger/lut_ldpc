@@ -1,16 +1,14 @@
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "Random.h"
 
 void Random::bubbleSort(int a[], int size)
 {
-  int i, temp;
   for(int pass=1; pass<size; pass++) {
-    for(i=0;i<size-pass;i++)
+    for(int i=0;i<size-pass;i++)
       if(a[i]>a[i+1]){
-	temp=a[i];
-	a[i]=a[i+1];
-	a[i+1]=temp;
+	std::swap(a[i], a[i+1]);
       }
   }
 }
@@ -18,12 +16,12 @@ void Random::bubbleSort(int a[], int size)
 double Random::gauss(double sdev, double mean)
 { 
   double sum=0.0;
-  for (int i=1;i<=12;i++)
+  for (int i=1;i<=12;++i)
     { 
       seed_u = 1664525lu * seed_u + 123456789lu; 
-      sum=sum+double(seed_u); 
+      sum+=double(seed_u); 
     }
-  return (double(sum)/4.29497e9-6.0)*sdev+mean;
+  return (sum/4.29497e9-6.0)*sdev+mean;
 }
 
 double Random::uniform(double a, double b)

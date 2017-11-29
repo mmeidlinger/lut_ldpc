@@ -1,7 +1,7 @@
 #ifndef BIGGIRTH
-#define BIGGIRTH
+#define BIGGIRTH 1
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream> // C++ I/O library header
 #include "Random.h"
 
@@ -25,7 +25,7 @@ class BigGirth {
   int M, N;
   int K;
   int EXPAND_DEPTH;
-  char *filename;
+  const char *filename;
   int *(*H);
 
   int *localGirth;
@@ -33,7 +33,7 @@ class BigGirth {
   NodesInGraph *nodesInGraph;
   Random *myrandom;
 
-  BigGirth(int m, int n, int *symbolDegSequence, char *filename, int sglConcent, int tgtGirth);
+  BigGirth(int m, int n, int *symbolDegSequence, const char *filename, int sglConcent, int tgtGirth, bool verbose_ = true);
   BigGirth(void);
 
   void writeToFile_Hcompressed(void);
@@ -47,16 +47,8 @@ class BigGirth {
  private:
   int selectParityConnect(int kthSymbol, int mthConnection, int & cycle);
   void updateConnection(int kthSymbol);
+  bool verbose;
 
 };
 
 #endif
-
-
-
-
-
-
-
-
-

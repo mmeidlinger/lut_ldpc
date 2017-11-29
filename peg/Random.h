@@ -1,9 +1,9 @@
 
 #ifndef RANDOM
-#define RANDOM
+#define RANDOM 1
 
-#include <stdlib.h>
-#include <iostream>
+#include <cstdlib>
+// #include <iostream>
 
 class Random{
  private:
@@ -14,8 +14,8 @@ class Random{
  public:
 
   Random(void) {
-    (*this).seed=987654321u;
-    (*this).seed_u=123456789lu;
+    this->seed=987654321u;
+    this->seed_u=123456789lu;
   }
   ~Random(void){;}
   void bubbleSort(int a[], int size);

@@ -1,7 +1,7 @@
-#ifndef CYCLESOFGRAPG
-#define CYCLESOFGRAPG
+#ifndef CYCLESOFGRAPH
+#define CYCLESOFGRAPH 1
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream> // C++ I/O library header
 //#include <iomanip.h>
 
