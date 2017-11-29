@@ -1,19 +1,35 @@
 /*!
- * \file
- * \brief
+ * \file LDPC_BER_Sim.hpp
+ * \brief Implementation of Bit Error Rate simulations (BER) for LDPC codes over and Binary-Input AWGN channel
  * \author Michael Meidlinger
  *
  * -------------------------------------------------------------------------
  *
- * Copyright (C) 2016 Michael Meidlinger - All Rights Reserved
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
  *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
  */
 
 
 #ifndef LDPC_BER_Sim_hpp
 #define LDPC_BER_Sim_hpp
 
-#include "LDPC_DE.hpp"
 #include "LDPC_Code_LUT.hpp"
 
 #include <iostream>
@@ -33,33 +49,40 @@
 //! Git version of program
 extern const char *gitversion;
 
-namespace itpp{
+namespace lut_ldpc{
 
-    
+/*!
+ * \brief Class for storing results of BER simulations
+ */
 class LDPC_BER_Sim_Results{
 public:
+    //! Default constructor
     LDPC_BER_Sim_Results(){}
+    //! Constructor taking basic LDPC code parameters
     LDPC_BER_Sim_Results(int nvar, int nchk): ldpc_nvar(nvar), ldpc_nchk(nchk)
         {ldpc_code_rate = 1.0- (double)nchk/nvar;}
-    //! Write Params to .m file
+    //! Wrapper for writing results to .it file. Generates filename and handles file and directory creation
     void save();
+    //! Writing results to .it file
     void write_itfile(const std::string& filename);
+    //! Adds and additonal SNR point to the results object
     void add_snr_point(double snr, const BERC& berc_data, const BERC& berc_uncoded, const BLERC& ferc);
+    //! Saves the runtime of the simulation
     void save_runtime(double runtime){this->runtime = runtime;}
 protected:
     
-    int     ldpc_nvar;
-    int     ldpc_nchk;
-    double  ldpc_code_rate;
+    int     ldpc_nvar; //!< Number of variable nodes of LDPC Code
+    int     ldpc_nchk; //!< Number of check nodes of LDPC Code
+    double  ldpc_code_rate; //!< LDPC code rate
     double  runtime;                //!< Runtime of the simulation in seconds
 
     
-    vec             sim_SNRdB;
-    Vec<int64_t>    sim_Nframes;
-    Vec<int64_t>    sim_Ndatabits;
-    Vec<int64_t>    sim_frame_errors;
-    Vec<int64_t>    sim_data_bit_errors;
-    Vec<int64_t>    sim_uncoded_bit_errors;
+    vec             sim_SNRdB; //!< vector of SNR points
+    Vec<int64_t>    sim_Nframes;  //!< vector containing the number of simulated codewords
+    Vec<int64_t>    sim_Ndatabits; //!< vector containing the number of simulated data bits
+    Vec<int64_t>    sim_frame_errors; //!< vector containing the number of erroneous code words
+    Vec<int64_t>    sim_data_bit_errors; //!< vector containing the number of erroneous data bits
+    Vec<int64_t>    sim_uncoded_bit_errors; //!< vector containing the number of erroneous bits of the receive word
     
     
 };
@@ -73,7 +96,7 @@ public:
     //! Default Constructor
     LDPC_BER_Sim(): decoder_set(false), encoder_set(false), sim_finished(false){}
     
-    //! Constructor from param file name. The param file name is
+    //! Constructor from param file name. All relative paths are relative with respect to \base_dir_path
     LDPC_BER_Sim(const boost::filesystem::path& params_file_path, const boost::filesystem::path& base_dir_path);
     
     //! Virtual Destructor
@@ -112,6 +135,8 @@ public:
     std::string     custom_name;            //!< This string will be attached to the auto generated filename for the resuls file
     std::string     results_prefix;         //!< Any results filename and folder will start with this prefix
     bool            save_permuted;          //!< If the simulation constructs a Generator it usually has to permute columns of the parity check Matrix. If this flag is true, the permuted versions of both Generator and Parity are stored in codes_dir, potentially overwriting the originals Parity .alist file.
+    std::string codec_filename;             //!< filename of a pregenerated codec object
+
     
     // Search paths for the program
     std::string     results_dir;
@@ -120,11 +145,6 @@ public:
     boost::filesystem::path results_path;
     boost::filesystem::path codes_path;
     boost::filesystem::path params_file_path;
-    std::string codec_filename;
-    
-    
-
-    
     
     // Parameters of the code
     int codeword_length;
@@ -153,9 +173,12 @@ private:
     int llr_calc_d4;
 };
     
-    
+/*!
+     \brief Bit error rate simulations for LUT based LDPC codes
+*/
 class LDPC_BER_Sim_LUT: public LDPC_BER_Sim{
 public:
+    //! Constructor from param file name. All relative paths are relative with respect to \base_dir_path
     LDPC_BER_Sim_LUT(const boost::filesystem::path& params_file_path, const boost::filesystem::path& base_dir_path);
     
     
@@ -167,14 +190,13 @@ public:
     boost::optional<double> design_thr;      //!< For which noise standard deviation (Assuming BIAWGN  hannel) the LUT's should be designed.
     boost::optional<double> design_SNRdB;    //!< For which (Eb/N0)_dB (Assuming BIAWGN  hannel) the LUT's should be designed.
     
-    /*!
-     If \c tree_auto_gen == false, then the trees have to be specified manually here, one for each possible node degree
-    */
-
+    
     //! Generate filename
     virtual std::string gen_filename() const;
     
+    //! Tree autogeneration method ("auto_bin_balanced", "auto_bin_high", "root_only")
     std::string tree_mode;
+    //! Load tree structures from file \trees_filename
     std::string trees_filename;
     std::string     trees_dir;
     boost::filesystem::path trees_path;

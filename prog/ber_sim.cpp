@@ -22,6 +22,7 @@
 
 namespace po = boost::program_options;
 
+using namespace lut_ldpc;
 using namespace itpp;
 using namespace std;
 int main(int argc, char **argv){

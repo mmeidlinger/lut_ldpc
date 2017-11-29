@@ -1,12 +1,29 @@
 /*!
- * \file
- * \brief
+ * \file LDPC_Code_LUT.hpp
+ * \brief Implementation of LUT based LDPC encoding and decoding for
  * \author Michael Meidlinger
  *
  * -------------------------------------------------------------------------
  *
- * Copyright (C) 2016 Michael Meidlinger - All Rights Reserved
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
  *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
  */
 
 
@@ -24,12 +41,12 @@
 
 
 
-namespace itpp{
+namespace lut_ldpc{
     
-extern const  int LDPC_binary_file_version;
     
 /*!
- LDPC decoder based on the min-LUT algorithm [REFERENCE to asilomar paper]
+ LDPC decoder based on the LUT decoding and the min-LUT algorithm( cf. M. Meidlinger, A. Balatsoukas-Stimming, A. Burg, and G. Matz, “Quantized message passing for LDPC codes,” in Proc. 49th Asilomar Conf. Signals, Systems and Computers, Pacific Grove, CA, USA, Nov. 2015.
+ )
  The following conventions are used:
     - At iteration ii, the quantizer for the LUT update has input resolution \c Nq_Msg(ii-1) and
       output resolution Nq(ii), where ii= 0,...,max_iters-1. For the first iteration(ii=0),
@@ -98,7 +115,7 @@ public:
                   bool perform_integrity_check = true);
     
 
-    
+    //! Constructor from filename to load pregenerated codec
     LDPC_Code_LUT(const std::string& filename, LDPC_Generator* const G_in=0):
         H_defined(false),
         G_defined(false),
@@ -311,7 +328,8 @@ private:
 
  
 };
-     
+    
+//! 
 std::ostream &operator<<(std::ostream &os, const LDPC_Code_LUT &C);
 }
 

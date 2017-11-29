@@ -1,16 +1,34 @@
 /*!
- * \file
- * \brief
+ * \file LDPC_BER_Sim.cpp
+ * \brief Implementation of Bit Error Rate simulations (BER) for LDPC codes over and Binary-Input AWGN channel
  * \author Michael Meidlinger
  *
  * -------------------------------------------------------------------------
  *
- * Copyright (C) 2016 Michael Meidlinger - All Rights Reserved
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
  *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
  */
 
 #include "LDPC_BER_Sim.hpp"
 
+using namespace lut_ldpc;
 using namespace std;
 using namespace itpp;
 using namespace boost::filesystem;
@@ -465,7 +483,7 @@ void LDPC_BER_Sim_LUT::load(){
             it_error("LDPC_BER_Sim_LUT::load(): No design noise threshold specified");
         
 
-        if( tree_mode == "auto_bin_balanced" ){
+        if( tree_mode == "auto_bin_balanced" || tree_mode == "auto_bin_high" || tree_mode=="root_only" ){
             C_ldpc->design_luts("auto_bin_balanced", get_empirical_ensemble(*H) , min_lut,  sigma2_design , max_iter, reuse_lut, Nq_Cha, Nq_Msg);
         }
         else if (tree_mode == "file"){

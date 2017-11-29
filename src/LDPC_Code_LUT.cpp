@@ -1,18 +1,38 @@
 /*!
- * \file
- * \brief
+ * \file LDPC_Code_LUT.hpp
+ * \brief Implementation of LUT based LDPC encoding and decoding for
  * \author Michael Meidlinger
  *
  * -------------------------------------------------------------------------
  *
- * Copyright (C) 2016 Michael Meidlinger - All Rights Reserved
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
  *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
  */
 
 
 #include "LDPC_Code_LUT.hpp"
 
 using namespace itpp;
+using namespace lut_ldpc;
+
+static const int LUT_LDPC_binary_file_version = 1;
 
 // ----------------------------------------------------------------------
 // LDPC_Code_LUT
@@ -501,7 +521,7 @@ void LDPC_Code_LUT::load_code(const std::string& filename, LDPC_Generator* const
     std::stringstream lut_stream;
     
     f >> Name("Fileversion") >> ver;
-    it_assert(ver == LDPC_binary_file_version, "LDPC_Code_LUT::load_code(): Unsupported file format");
+    it_assert(ver == LUT_LDPC_binary_file_version, "LDPC_Code_LUT::load_code(): Unsupported file format");
     f >> Name("H_defined") >> H_defined;
     f >> Name("G_defined") >> G_defined;
     f >> Name("LUTs_defined") >> LUTs_defined;
@@ -575,7 +595,7 @@ void LDPC_Code_LUT::save_code(const std::string& filename) const
     
     it_file f;
     f.open(filename, true);
-    f << Name("Fileversion") << LDPC_binary_file_version;
+    f << Name("Fileversion") << LUT_LDPC_binary_file_version;
     f << Name("H_defined") << H_defined;
     f << Name("G_defined") << G_defined;
     f << Name("LUTs_defined") << LUTs_defined;
@@ -662,7 +682,7 @@ double LDPC_Code_LUT::design_luts(const std::string& tree_method,
 // Related functions
 // ----------------------------------------------------------------------
 
-std::ostream& itpp::operator<<(std::ostream &os, const LDPC_Code_LUT &C)
+std::ostream& lut_ldpc::operator<<(std::ostream &os, const LDPC_Code_LUT &C)
 {
     ivec rdeg = zeros_i(max(C.dc_vec) + 1);
     for (int i = 0; i < C.nchk; i++)     {

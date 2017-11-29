@@ -1,9 +1,30 @@
-//
-//  LUT_Tree.hpp
-//  LDPC_LUT
-//
-//  Created by Michael Meidlinger on 28.11.17.
-//
+/*!
+ * \file LUT_Tree.hpp
+ * \brief Implementation of tree structured Lookup Table (LUT) node updates for discrete LDPC message passing decoding
+ * \author Michael Meidlinger
+ *
+ * -------------------------------------------------------------------------
+ *
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
+ *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
+ */
 
 #ifndef LUT_Tree_hpp
 #define LUT_Tree_hpp
@@ -25,6 +46,7 @@ namespace lut_ldpc{
     //! Container class for a tree consisting of LUT_Tree_Nodes
     class LUT_Tree{
     public:
+        //! Type of tree, can be either variable node, check node or decision node
         enum tree_type_e{
             VARTREE,
             CHKTREE,
@@ -51,6 +73,9 @@ namespace lut_ldpc{
         
         friend std::ostream& operator<<(std::ostream &os, const LUT_Tree &t);
         friend std::istream& operator>>(std::istream &is, LUT_Tree &t);
+        friend std::istream& operator>>(std::istream &is, Array<Array<LUT_Tree>> &t);
+        friend std::ostream& operator<<(std::ostream &os, const Array<Array<LUT_Tree>> &t);
+
         
         //=========== Wrapper functions
         
@@ -133,10 +158,28 @@ namespace lut_ldpc{
     std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
     
     //Tree I/O
+    /*!
+        \brief Serialize tree and write it to output stream
+     */
     std::ostream& operator<<(std::ostream &is, const LUT_Tree &t);
+
+    /*!
+     \brief Construct tree by reading a serilized version from input stream
+     */
     std::istream& operator>>(std::istream &os, LUT_Tree &t);
     
+    /*!
+     \brief Serialize array of trees and write them to output stream
+     
+     The first line contains the number of iterations (first array dimension), referred to as I. Subsequently, for each iteration,
+     the stream contains one tree for each of the D degrees (second array dimension). The LUT trees themselves are serialized
+     via LUT_Tree_Node::serialize_tree()
+     */
     std::istream& operator>>(std::istream &is, Array<Array<LUT_Tree>> &t);
+    
+    /*!
+     \brief Construct array of trees by reading a serilized version from input stream
+     */
     std::ostream& operator<<(std::ostream &os, const Array<Array<LUT_Tree>> &t);
     
     //! Super class of all other node nypes
@@ -191,7 +234,10 @@ namespace lut_ldpc{
         //! Return a string representing the data in the node
         std::string node_to_string();
         
+        //! Deep copy the tree with all its nodes
         LUT_Tree_Node* deep_copy();
+        
+        //! Get the cumulative distance from leave nodes to the root node
         int get_metric(int l=0);
         
         //! Set the pmfs of the leave nodes
@@ -202,17 +248,25 @@ namespace lut_ldpc{
         //! Returns the number of levels of the tree
         int get_height() const;
         
+        //! Updates the LUTs recursively, calling the function pointer \c fp for each tree node. Depending on the type of tree, \c fp would be set to point to LUT_Tree::var_update() or LUT_Tree::chk_update()
         vec tree_update( bool reuse,
                         void (*fp)(vec&, ivec&, const Array<vec>&, int, bool));
         /*!
-         This function writes  can be saved to a file
-         and compiled using e.g., tikz2pdf or with pdflatex if it is
+         This function serves to visualize the tree structure. generates TikZ LaTeX code which can be
+         compiled with tikz2pdf or with pdflatex if it is
          wrapped appropriately. Most likely, the sibling distance
          needs to be ajusted mannually for the tree nodes not to
          overlap.
          */
         void tikz_draw_tree(std::ostream& outstream);
+        /*!
+            Same as tikz_draw_tree(std::ostream& outstream), except the output is written to file
+         */
         void tikz_draw_tree(const std::string& filename);
+        
+        /*!
+         Actual functionality behind tikz_draw_tree(std::ostream& outstream), drawing tree nodes recursively
+         */
         void tikz_draw_recursive(std::ostream& outstream, int level=0);
         /*!
          \brief Builds a dynamic LUT tree based on the input string \c s
@@ -265,11 +319,11 @@ namespace lut_ldpc{
         int chk_msg_update(std::deque<int>& msgs);
         
         /*!
-         \brief Serialize the tree recursively
+         \brief Serialize the tree recursively, using in order depth-first traversation
          */
         void serialize_tree(std::ostream& os);
         /*!
-         \brief Deserialize the tree recursively
+         \brief Deserialize the tree recursively, using in order depth-first traversation
          */
         static LUT_Tree_Node* deserialize_tree(std::istream& is);
         

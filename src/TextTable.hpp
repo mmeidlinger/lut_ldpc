@@ -1,3 +1,11 @@
+/*!
+ * \file TextTable.hpp
+ * \brief C++ text table: format text in tabular form, cf. https://github.com/haarcuba/cpp-text-table
+ *
+ *  C++ text table: format text in tabular form, cf. https://github.com/haarcuba/cpp-text-table
+ *  With definitions and declarations seperated into header and source files. This software is licence under the GNU General Public License v3.0
+ * -------------------------------------------------------------------------
+ */
 
 #ifndef TextTable_hpp
 #define TextTable_hpp

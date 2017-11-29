@@ -98,8 +98,6 @@
 		D5113BA11E43A0D300A4FD4E /* LDPC_BER_Sim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LDPC_BER_Sim.cpp; path = ../src/LDPC_BER_Sim.cpp; sourceTree = "<group>"; };
 		D5113BA21E43A0D300A4FD4E /* LDPC_BER_Sim.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LDPC_BER_Sim.hpp; path = ../src/LDPC_BER_Sim.hpp; sourceTree = "<group>"; };
 		D5113BA31E43A0D300A4FD4E /* LDPC_Code_LUT.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LDPC_Code_LUT.hpp; path = ../src/LDPC_Code_LUT.hpp; sourceTree = "<group>"; };
-		D5113BA41E43A0D300A4FD4E /* LDPC_Degree_Opt.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LDPC_Degree_Opt.hpp; path = ../src/LDPC_Degree_Opt.hpp; sourceTree = "<group>"; };
-		D5113BA51E43A0D300A4FD4E /* LDPC_Degree_Opt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LDPC_Degree_Opt.cpp; path = ../src/LDPC_Degree_Opt.cpp; sourceTree = "<group>"; };
 		D5113BA61E43A0D300A4FD4E /* LDPC_Code_LUT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LDPC_Code_LUT.cpp; path = ../src/LDPC_Code_LUT.cpp; sourceTree = "<group>"; };
 		D5113BA71E43A0D300A4FD4E /* LDPC_DE.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LDPC_DE.hpp; path = ../src/LDPC_DE.hpp; sourceTree = "<group>"; };
 		D5113BA91E43A0D300A4FD4E /* LDPC_DE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LDPC_DE.cpp; path = ../src/LDPC_DE.cpp; sourceTree = "<group>"; };
@@ -175,16 +173,14 @@
 				D5113BB51E43A51200A4FD4E /* gitversion.cpp */,
 				D5113BA11E43A0D300A4FD4E /* LDPC_BER_Sim.cpp */,
 				D5113BA21E43A0D300A4FD4E /* LDPC_BER_Sim.hpp */,
-				D5113BA31E43A0D300A4FD4E /* LDPC_Code_LUT.hpp */,
 				D549C5FA1FCDF98900A4FD4E /* LDPC_Ensemble.cpp */,
 				D549C5FB1FCDF98900A4FD4E /* LDPC_Ensemble.hpp */,
-				D5113BA41E43A0D300A4FD4E /* LDPC_Degree_Opt.hpp */,
-				D5113BA51E43A0D300A4FD4E /* LDPC_Degree_Opt.cpp */,
+				D5113BA31E43A0D300A4FD4E /* LDPC_Code_LUT.hpp */,
 				D5113BA61E43A0D300A4FD4E /* LDPC_Code_LUT.cpp */,
 				D549C6021FCDFBC400A4FD4E /* common.cpp */,
 				D549C6031FCDFBC400A4FD4E /* common.hpp */,
-				D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */,
 				D549C5FF1FCDFA1E00A4FD4E /* LUT_Tree.hpp */,
+				D549C5FE1FCDFA1E00A4FD4E /* LUT_Tree.cpp */,
 				D5113BA91E43A0D300A4FD4E /* LDPC_DE.cpp */,
 				D5113BA71E43A0D300A4FD4E /* LDPC_DE.hpp */,
 			);

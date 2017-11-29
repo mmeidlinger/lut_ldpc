@@ -1,12 +1,29 @@
 /*!
- * \file
- * \brief
+ * \file LDPC_DE.hpp
+ * \brief Density Evolution for discrete LUT message passing decoding of LDPC codes
  * \author Michael Meidlinger
  *
  * -------------------------------------------------------------------------
  *
- * Copyright (C) 2016 Michael Meidlinger - All Rights Reserved
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
  *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
  */
 
 
@@ -19,11 +36,9 @@
 
 
 
-#include <iostream>
 #include <itpp/itbase.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <iomanip>
 
 //! Git version of program
 extern const char *gitversion;
@@ -44,13 +59,16 @@ public:
     
     //! Returns the number of iterations if \c thr is feasible for \c ens, otherwise returns -1
     virtual int evolve(double thr) = 0;
+    /*!
+     Same as evolve(double thr), except it outputs error probability traces. Row \ i of \c P contains the conditional message error probabilities
+     of iteration \c i for different degrees and \c p(i) is the overall error probability. The type of message is selected via \c var or \c chk
+    */
     virtual int evolve(double thr, bool var, bool chk, mat& P, vec& p) = 0;
-    //! This function is used to set and update the ensemble of the DE object
- //   virtual void setup(const LDPC_Ensemble &ens) = 0;
-    
+
     
     //! Performs a bisection search and returns the threshold of \c ens
     virtual int bisec_search(double & sig);
+    //! Set the minimum and maximum noise threshold values for the bisection search
     void set_bisec_window(double tmin, double tmax);
     
     //! Set the ensemble
@@ -95,7 +113,7 @@ protected:
     
     
 /*
- \brief LDPC Density Evolution for purely Lookup-Table (LUT) based decoding
+ \brief LDPC Density Evolution for  Lookup-Table (LUT) based decoding
  */
 class LDPC_DE_LUT : public LDPC_DE{
     
@@ -151,8 +169,8 @@ public:
     };
     //! Get the reuse vector 
     bvec get_reuse_vec() const {return reuse_vec;}; 
-        /*! \brief Returns an array variable lut tree quantizers designed using density evolution
-     
+    /*!
+     \brief Creates an arrays of lut tree quantizers designed using density evolution
      */
     void get_lut_trees(Array<Array<LUT_Tree>>& var_trees, Array<Array<LUT_Tree>>& chk_trees, double sig);
     
@@ -167,14 +185,29 @@ private:
         double b;
         var_update_irr( a, b, iter, prev_trees_var);
     }
+    /*!
+    \brief Check node density evolution update for LUT trees.
+        Check node density evolution update for LUT trees.
+     Based on the current message distribution pmf_var2chk, a call to this function updates pmf_chk2var.
+     This function ultimately calls LUT_Tree_Node::tree_update(), generating information optimal LUTs of the tree based on the current message distributions,
+     but is not saving the LUTs. For exportimng the generated LUTs, cf. get_lut_trees()
+     \c prev_trees_chk is passed in case that the trees from the previous iteration are reused
+    */
     void chk_update_irr(vec& P_row, double& Pe, int iter, Array<LUT_Tree>& prev_trees_chk);
+    /*!
+     \brief Variable node density evolution update for LUT trees.
+     Variable node density evolution update for LUT trees.  Based on the current message distribution pmf_chk2var, a call to this function updates pmf_var2chk
+     This function ultimately calls LUT_Tree_Node::tree_update(), generating information optimal LUTs of the tree based on the current message distributions,
+     but is not saving the LUTs. For exportimng the generated LUTs, cf. get_lut_trees()
+     \c prev_trees_chk is passed in case that the trees from the previous iteration are reused
+     */
     void var_update_irr(vec& P_row, double& Pe, int iter, Array<LUT_Tree>& prev_trees_var);
     
     
     
     
 private:
-    
+    //! Update strategy for irregular codes, i.e., if there are is more than one tree per iteration
     enum{
         INDIVIDUAL,
         JOINT_LEVEL,
@@ -185,13 +218,18 @@ private:
     Array<Array<LUT_Tree>> var_tree_templates;
     Array<Array<LUT_Tree>> chk_tree_templates;
     
-    
+    //! Symmetric probability mass function of channel LLRs
     vec pmf_cha;
+    //! Symmetric probability mass function of variable to check node messages. Updated each iteration
     vec pmf_var2chk;
+    //! Symmetric probability mass function of check to variable node messages. Updated each iteration
     vec pmf_chk2var;
     
+    //! Wether check node LUTs are used or the min-LUT algorithm is employed
     bool min_lut;
+    //! This vector is 1 at position ii if at iteration ii, the LUT of iteration ii-1 is reused, ii=1,...
     bvec reuse_vec;
+    // LUT  ii has input resolution Nq_Msg(ii) and output resolution Nq_Msg(ii+1), ii=1,...
     ivec Nq_Msg_vec;
     int Nq_Cha;
     //! Number of quantization intervals for fine prequantization used fot getting the channel pmf

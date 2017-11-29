@@ -1,9 +1,30 @@
-//
-//  common.hpp
-//  LDPC_LUT
-//
-//  Created by Michael Meidlinger on 28.11.17.
-//
+/*!
+ * \file common.hpp
+ * \brief Collection of function that are accesses throughout lut_ldpc
+ * \author Michael Meidlinger
+ *
+ * -------------------------------------------------------------------------
+ *
+ * Copyright (C) 2017 Michael Meidlinger - All Rights Reserved
+ *
+ * This file is part of lut_ldpc, a software suite for simulating and designing
+ * LDPC decodes based on discrete Lookup Table (LUT) message passing
+ *
+ * lut_ldpc is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * lut_ldpc distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with lut_ldpc.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * -------------------------------------------------------------------------
+ */
 
 #ifndef common_hpp
 #define common_hpp
@@ -36,31 +57,37 @@ vec sig2snr(double rate, const vec& sig);
 //! Convert SNR (=Eb/N0 in dB) to corresponding AWGN channel noise standard deviation
 vec snr2sig(double rate, const vec& snr);
 
+//! Nonlinear quantization of \c x. The output is equal to i if \c boundaries(i-1) < x < boundaries(i)
 int quant_nonlin(double x, const vec& boundaries);
-int quant_lin(double x, double delta, int N);
+//! Vector version of quant_nonlin
 ivec quant_nonlin(const vec& x, const vec& boundaries);
+    
+//! Linear quantization of x
+int quant_lin(double x, double delta, int N);
+
 /*! \brief Get quantized Gaussian pmfs with N quantization intervals (2 Overload and
  N -2) inner regions. For N odd, this is quantization with 0, with N even there is no zero.
  */
 vec get_gaussian_pmf(double mu, double sig, int N, double delta);
 
+//! Convert rate to noise threshold
 double rate_to_shannon_thr(double R);
+//! Get maximum rate for noise theshold
 double shannon_thr_to_rate(double sig);
 
-
+//! x*log2(y) with checking for numeric stability
 inline double x_log2_y(double x, double y);
 
+//! Flip contents of a vector, i.e for a length N vector,  x_out(ii) = x_in(N-1 -ii)
 template <class Num_T> Vec<Num_T> fliplr(const Vec<Num_T>& x);
-    
+
+//! Eliminate duplicate entries from a vector
 template <class Num_T> Vec<Num_T> unique(const Vec<Num_T>& x);
 
-
-    
+//! Kronecker product of two vectors
 template <class Num_T> Vec<Num_T> kron(const Vec<Num_T>& x, const Vec<Num_T>& y);
-    
-template <class Num_T> ivec sort_index_sym(const Vec<Num_T>& x);
-template<class Num_T> ivec get_complement_idx(const Vec<Num_T>& a, const Vec<Num_T>& b,  Num_T c);
 
+//! Map sign based index to magnitude based index
 int signed_to_unsigned_idx(int idx, const ivec& inres);
     
 /*!
