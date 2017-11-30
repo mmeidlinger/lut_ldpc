@@ -45,6 +45,8 @@ namespace lut_ldpc{
     
     
 /*!
+ \brief LDPC decoder based on the LUT decoding
+ 
  LDPC decoder based on the LUT decoding and the min-LUT algorithm( cf. M. Meidlinger, A. Balatsoukas-Stimming, A. Burg, and G. Matz, “Quantized message passing for LDPC codes,” in Proc. 49th Asilomar Conf. Signals, Systems and Computers, Pacific Grove, CA, USA, Nov. 2015.
  )
  The following conventions are used:

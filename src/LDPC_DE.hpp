@@ -47,8 +47,10 @@ using namespace itpp;
 namespace lut_ldpc{
 
 
-    
-
+/*!
+ \brief Base class for density evolution
+ 
+ */
 class LDPC_DE
 {
 public:
@@ -112,7 +114,7 @@ protected:
 };
     
     
-/*
+/*!
  \brief LDPC Density Evolution for  Lookup-Table (LUT) based decoding
  */
 class LDPC_DE_LUT : public LDPC_DE{
@@ -244,13 +246,18 @@ private:
 
     /*!
      \brief
-     Density Evolution for Belief Propagation decoding
+     LDPC Density Evolution for Belief Propagation decoding
      */
 class LDPC_DE_BP : public LDPC_DE
 {
 public:
+    //! Construct DE object with degree distribution \c ens_, message pmfs with \c Nb_ bits resolution and maximum LLR values \c L_max_
     LDPC_DE_BP(LDPC_Ensemble ens_,  int Nb_ = 8, double Lmax_ = 25);
     
+    /*!
+     \brief Run density evolution without tracing.
+     Cf. LDPC_DE_BP::evolve(double thr, bool var, bool chk, mat& P, vec& p) for details
+     */
     virtual int evolve(double thr);
     virtual int evolve(double thr, bool var, bool chk, mat& P, vec& p);
    
@@ -262,27 +269,42 @@ public:
     
 private:
     //! Wether the object has been initialized
-    
     bool setup_flag = false;
     
     
     
     /*!
-     This functions performs a boxplus convolution (c.f. REF) of the input pmf specified by its
+     \brief Table aided box-plus convolution
+     
+     This functions performs a table-aided boxplus convolution (cf. T. Richardson and R. Urbanke: "Modern Coding Theory" 2008, Section B.3)  of the input pmf specified by its
      positive and negative parts \c pmf_in_p and \c pmf_in_m and the output pmf, specified
      in a similar manner by \c pmf_out_p and \c pmf_out_m. The result of the convolution
      is again stored in \c pmf_out_p and \c pmf_out_m.
      */
     void chk_update_convolve(const vec& pmf_in_p, const vec& pmf_in_m, vec& pmf_out_p, vec& pmf_out_m);
     
+    /*! \brief Check node update with error probability tracing
+     
+     Updates #pmf_chk2var based on #pmf_var2chk
+     Dor details on error probability tracing, c.f. LDPC_DE_LUT::chk_update_irr() for explanation on tracing.
+     */
     void chk_update_irr(bool trace, vec& P_row, double& Pe);
+    
+    //! Check node update
     void chk_update_irr(){vec a; double b; chk_update_irr(false,a,b);}
+    
+    /*! \brief  Variable node update
+     Updates #pmf_var2chk based on #pmf_var2chk and #pmf_LLR
+     Dor details on error probability tracing, c.f. LDPC_DE_LUT::var_update_irr() for explanation on tracing.
+     */
     void var_update_irr(bool trace, vec& P_row, double& Pe);
+    //! Variable node update.
     void var_update_irr(){vec a; double b; var_update_irr(0,a,b);}
     
     
-    
+    //! Generates the Q table for fast boxplus convolution, cf. T. Richardson and R. Urbanke: "Modern Coding Theory" 2008, Section B.3.
     imat gen_Q_table();
+    //! Generates the Q table for fast boxplus convolution, cf. T. Richardson and R. Urbanke: "Modern Coding Theory" 2008, Section B.3.
     void set_tq_tables();
     
     
@@ -290,7 +312,7 @@ private:
     
     
     /*!
-     This functions performs a convolution (c.f. REF) of the input pmf \c pmf_in and the output pmf \c pmf_out where the result of the convolution
+     This functions performs a convolution  of the input pmf \c pmf_in and the output pmf \c pmf_out where the result of the convolution
      is again stored in \c pmf_out.
      */
     void var_update_convolve(const vec& pmf_in, vec& pmf_out);
@@ -327,8 +349,11 @@ private:
     void numeric_postprocessing(vec& x) const;
     
 
+    //! Symmetric pmf of inoput LLRs
     vec pmf_LLR;
+    //! Symmetric pmf of variable to check node messages
     vec pmf_var2chk;
+    //! Symmetric pmf of check to variable node messages
     vec pmf_chk2var;
 
     
@@ -360,28 +385,11 @@ private:
 };
 
 
-
-    
-
-   
-    
-
-    
 vec chk_update_minsum(const vec& p_in, int dc);
-
-
-    
 inline vec pmf_plus(const vec& pmf);
 inline vec pmf_minus(const vec& pmf);
 inline vec pmf_join(const vec& pmf_p, const vec& pmf_m);
 
-    
-
-
-    
-    
-
-    
 void get_lut_tree_templates(const std::string& tree_method, const LDPC_Ensemble& ens, ivec Nq_Msg, int Nq_Cha, bool minLUT, Array<Array<LUT_Tree> >& var_luts, Array<Array<LUT_Tree> >& chk_luts );
     
 

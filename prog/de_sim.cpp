@@ -300,7 +300,7 @@ void de_sim_lut(const boost::property_tree::ptree& param_tree)
     it_assert(file.is_open(),
               "de_sim_bp(): Could not open file \""
               << results_name << "\" for writing");
-    file << "==== DE Threshold for ensemble file" << ensemble_filename
+    file << "==== DE Threshold for ensemble file " << ensemble_filename
     << " (Rate = " << ens.get_rate() << ", BI-AWGN channel) " << endl
     << "  Active Variable node degrees: " << ens.sget_degree_lam() << endl
     << "  pmf of Variable node edges: " << ens.sget_lam() << endl
@@ -424,7 +424,7 @@ void de_sim_bp(const boost::property_tree::ptree& param_tree)
     it_assert(file.is_open(),
               "de_sim_bp(): Could not open file \""
               << results_name << "\" for writing");
-    file << "==== DE Threshold for ensemble file" << ensemble_filename
+    file << "==== DE Threshold for ensemble file " << ensemble_filename
          << " (Rate = " << ens.get_rate() << ", BI-AWGN channel) " << endl
          << "  Active Variable node degrees: " << ens.sget_degree_lam() << endl
          << "  pmf of Variable node edges: " << ens.sget_lam() << endl

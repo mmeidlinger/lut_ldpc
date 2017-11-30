@@ -9,8 +9,9 @@
  *
  */
 
-#include "LDPC_Degree_Opt.hpp"
+#include "LDPC_DE.hpp"
 #include <boost/program_options.hpp>
+#include <itpp/itbase.h>
 #include <thread>
 
 
@@ -21,9 +22,13 @@
 #define THR_PREC 1e-7
 
 namespace po = boost::program_options;
+using namespace lut_ldpc;
 using namespace std;
 using namespace itpp;
 
+/*!
+ \brief Wrapper to evolve an ensemble with noise level \c thr for multithreaded execution
+ */
 void evolve_thread(LDPC_DE_LUT de, double thr, double Pe_max, double* Pe, int* iters){
     mat Pmat_dummy;
     vec Pe_trace;
@@ -40,7 +45,7 @@ void evolve_thread(LDPC_DE_LUT de, double thr, double Pe_max, double* Pe, int* i
 
 int main(int argc, char **argv){
 
-    cout << "Called program via" << endl << argv[0];
+    cout << "Called program via " << endl << argv[0];
     for(int ii=1; ii<argc; ii++){
         cout << " " << argv[ii];
     } 
@@ -117,7 +122,7 @@ int main(int argc, char **argv){
         // We put this after processing the help message to avoid required arguments if all we need is "help"
         po::notify(vm);
 
-        //==== Parse initial degree distribution 
+        //==== Parse degree distribution
         if (vm.count("degree-dist")==0 && vm.count("ensemble")==1) {
             cout << "Reading initial enemble from file" << ensemble_filename << " ... ";
             ens = LDPC_Ensemble(ensemble_filename);
@@ -153,7 +158,7 @@ int main(int argc, char **argv){
         else{
             it_error("Either --degree-dist or --enseble is required one time");
         }
-        // Echo initial ensemble
+        // Echo  ensemble
         cout << "Successfully read ensemble with rate " <<  ens.get_rate() << endl << ens << endl;
 
     }

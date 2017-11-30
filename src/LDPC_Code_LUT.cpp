@@ -1,5 +1,5 @@
 /*!
- * \file LDPC_Code_LUT.hpp
+ * \file LDPC_Code_LUT.cpp
  * \brief Implementation of LUT based LDPC encoding and decoding for
  * \author Michael Meidlinger
  *

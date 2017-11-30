@@ -16,6 +16,7 @@
 #include <vector>
 #include <string>
 
+//! C++ text table: format text in tabular form, cf. https://github.com/haarcuba/cpp-text-table
 class TextTable {
 
 public:

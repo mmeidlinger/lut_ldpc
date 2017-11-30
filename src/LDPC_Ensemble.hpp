@@ -75,7 +75,7 @@ public:
     //! Write LDPC ensemble to .ens file
     void write(const std::string& filename) const;
     
-    //! Export LDPC ensemble to .deg file
+    //! Export LDPC ensemble to .deg file (This kind of file is used by the PEG program)
     void export_deg(const std::string& filename) const;
     
     //! Get the rate of the ensemble

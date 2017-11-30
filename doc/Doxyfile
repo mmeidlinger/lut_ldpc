@@ -1,9 +1,9 @@
 PROJECT_NAME 		= lut_ldpc
 PROJECT_BRIEF  		= "LDPC decoding and density evolution for look-up table (LUT) based decoding"
 OUTPUT_DIRECTORY	= doc
-INPUT 			= README.md src prog include
+INPUT 			= README.md src prog include codes
 USE_MDFILE_AS_MAINPAGE = README.md
-FILE_PATTERNS 		= *.cpp *.hpp
+FILE_PATTERNS 		= *.cpp *.hpp *.md
 RECURSIVE		 = NO
 VERBATIM_HEADERS = YES
 SHOW_FILES = YES
@@ -54,3 +54,5 @@ UML_LIMIT_NUM_FIELDS = 0
  
 # Show relationship for templates in graphs
 TEMPLATE_RELATIONS = YES
+
+

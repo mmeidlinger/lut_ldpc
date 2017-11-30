@@ -1,4 +1,4 @@
-; Sample parameter file for density evolution using Belief Propagation Decoding
+; Sample parameter file for density evolution using LUT or Belief Propagation Decoding
 ; Some settings appear commented with their default values, unless the description of the setting
 ; explicitly states other default behavior. If you want to change
 ; them uncomment and edit them.
@@ -11,13 +11,16 @@
 ;   thr_max = 
 ;   Determines at which search window size convergence is declared
    thr_prec = 1e-5
-;   Maximum number of 
+;   Error probability upon which we declare convergence
    Pe_max = 1e-10
-;   Maximum number of density evolution iterations. Can be set to be a vector, iff
+;   Maximum number of density evolution iterations. Can be set to be a vector (e.g. [5 10 20], iff
 ;   rows(qbits) == 1. The program then sweeps over different number of iterations
    maxiter_de = 2000
+;   Maximum number of bisections
 ;   maxiter_bisec = 50
+;  Nuber of iteration that the error probability is allowed not to increase without terminating
    max_ni_de_iters = 1
+;  Maximum LLR for quantization
    LLR_max = 25.0
 ;   Where the thresholds will be saved
    results_name = results/rate0.50_dv02-17_dc08-09_lut_q4_minLUT1_de-auto-bin-balanced_example.txt

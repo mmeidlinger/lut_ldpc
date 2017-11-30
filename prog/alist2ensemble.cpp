@@ -21,7 +21,7 @@ int main(int argc, char **argv){
 
     // Parse input name
     if(argc!=3){
-        cout << "Usage: gen_ensemble infile.alist outfile.ens" << endl;
+        cout << "Usage: alist2ensemble infile.alist outfile.ens" << endl;
         return EXIT_FAILURE;
     }
     
