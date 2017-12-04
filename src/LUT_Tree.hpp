@@ -154,8 +154,6 @@ namespace lut_ldpc{
         tree_type_t type;
     };
     
-    //! Print Information about the LDPC ensemble
-    std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
     
     //Tree I/O
     /*!
@@ -182,7 +180,7 @@ namespace lut_ldpc{
      */
     std::ostream& operator<<(std::ostream &os, const Array<Array<LUT_Tree>> &t);
     
-    //! Super class of all other node nypes
+    //! A LUT_Tree object is a tree containing multiple LUT_Tree_Node objects
     class LUT_Tree_Node{
         
         friend class LUT_Tree;

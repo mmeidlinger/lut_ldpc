@@ -173,6 +173,9 @@ template <class Num_T> Vec<Num_T> lut_ldpc::fliplr(const Vec<Num_T>& x){
     for(int ii=0; ii<len; ii++ )    y(ii) = x(len-1-ii);
     return y;
 }
+template  Vec<int> lut_ldpc::fliplr<int>(const Vec<int>& x);
+template  Vec<double> lut_ldpc::fliplr<double>(const Vec<double>& x);
+
 
 template <class Num_T> Vec<Num_T> lut_ldpc::kron(const Vec<Num_T>& x, const Vec<Num_T>& y){
     int len_x = length(x);

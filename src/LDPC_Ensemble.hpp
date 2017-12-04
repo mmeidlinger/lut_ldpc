@@ -29,6 +29,7 @@
 #ifndef LDPC_Ensemble_hpp
 #define LDPC_Ensemble_hpp
 
+#include "common.hpp"
 #include <stdio.h>
 #include <itpp/itbase.h>
 #include <itpp/itcomm.h>
@@ -126,6 +127,9 @@ public:
     friend std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
     
 };
+
+//! Print Information about the LDPC ensemble
+std::ostream& operator<<(std::ostream &os, const LDPC_Ensemble &ens);
 
 //! Calculate the LDPC ensemble from a parity check matrix
 LDPC_Ensemble get_empirical_ensemble(const LDPC_Parity& H);

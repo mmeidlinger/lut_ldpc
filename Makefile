@@ -6,29 +6,51 @@ SRCDIR := src
 PROGDIR := prog
 DOCDIR := doc
 BUILD_DIR := build
+INSTALLDIR := bin
 # Binaries and headers for external resources
 LIBDIR := lib
 INCDIR := include
+BUILD_TYPE ?= Release
+LINK_TYPE ?= static
+
+# ========== Set compiler based on Operating system
+ifeq ($(OS),Windows_NT)
+    echo "lut_ldpc is currently not supported for Windows. There is no fundamental reason it shouldn't work though, you just need to figure out the compilation and linking process yourself";
+    exit
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+		CXX := g++
+		LIBS_DYNAMIC :=   -llapack -lfftw3 -lblas -lgomp -lpthread -pthread  -lboost_filesystem -lboost_program_options -lboost_system 
+		LIBS_STATIC :=  -llapack -lfftw3 -lblas -lgomp -lpthread -pthread  -static-libstdc++ -Wl,-Bstatic -lboost_filesystem -lboost_program_options -lboost_system
+		LIB_DYN_EXTENSION := so
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        CXX := clang++
+		LIBS_STATIC := -llapack -lfftw3 -lblas  -lboost_filesystem -lboost_program_options -lboost_system
+		# OSX is not very well suited for static linking. Hence, boost is linked dynamically here
+		LIBS_DYNAMIC :=  $(LIBS_STATIC)
+		LIB_DYN_EXTENSION := dylib
+    endif
+endif
 
 LIB_PATH := -L$(LIBDIR)
 # Set libraries
-# Set libraries. Older gcc version do not autocomplete missing libraries by linking them dynamically, so if we compile on systens using older gcc versions, we need to specify the explicityl
-LIBS_DYNAMIC :=   -llapack -lfftw3 -lblas -lgomp -lpthread -pthread  -static-libstdc++ 
-LIBS_STATIC := -Wl,-Bstatic -lboost_filesystem -lboost_program_options -lboost_system -lglpk
-LIBS_GCC4_DYNAMIC := -lamd -lcolamd -lz -lltdl -ldl
-LIBS := $(LIBS_DYNAMIC) $(LIBS_GCC4_DYNAMIC) $(LIBS_STATIC)
+ifeq ($(LINK_TYPE),static)
+	LIBS := $(LIBS_STATIC)
+endif
+ifeq ($(LINK_TYPE),dynamic)
+	LIBS := $(LIBS_DYNAMIC)
+endif
+
 
 CFLAGS := -std=c++11 -Wall
-CXX := g++
 LFLAGS :=
 
 
 INCLUDE := -isystem $(INCDIR) -Isrc
 DEBUG := 
-BUILD_TYPE ?= Debug
 
-# include bin/ directory in the path
-#export PATH := bin:$(PATH)
 
 
 
@@ -37,20 +59,36 @@ BUILD_TYPE ?= Debug
 ifeq ($(BUILD_TYPE),Release)
 	EXECDIR := $(BUILD_DIR)/release/programs
 	OBJDIR := $(BUILD_DIR)/release/objects
-	ITPP_LIBNAME := libitpp_static.a
-	LITPP := -litpp_static
  	CFLAGS += -DNDEBUG -O3
+ 	ifeq ($(LINK_TYPE),static)
+		ITPP_LIBNAME := libitpp_static.a
+		LITPP := -litpp_static
+		LITPP_IS_SHARED := off
+	endif
+	ifeq ($(LINK_TYPE),dynamic)
+		ITPP_LIBNAME := libitpp.$(LIB_DYN_EXTENSION)
+		LITPP := -litpp
+		LITPP_IS_SHARED := on
+	endif
 endif
 ifeq ($(BUILD_TYPE),Debug)
 	EXECDIR := $(BUILD_DIR)/debug/programs
 	OBJDIR := $(BUILD_DIR)/debug/objects
 	DEBUG += -ggdb
-	ITPP_LIBNAME := libitpp_static_debug.a
-	LITPP := -litpp_static_debug
+	ifeq ($(LINK_TYPE),static)
+		ITPP_LIBNAME := libitpp_static_debug.a
+		LITPP := -litpp_static_debug
+		LITPP_IS_SHARED := off
+	endif
+	ifeq ($(LINK_TYPE),dynamic)
+		ITPP_LIBNAME := libitpp_debug.$(LIB_DYN_EXTENSION)
+		LITPP := -litpp_debug
+		LITPP_IS_SHARED := on
+	endif
 endif
 
 ITPP_TARGET= $(LIBDIR)/$(ITPP_LIBNAME)
-ITPP_CMAKE_ARGS=-DITPP_SHARED_LIB=off -DHTML_DOCS=off -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(shell pwd)
+ITPP_CMAKE_ARGS=-DITPP_SHARED_LIB=$(LITPP_IS_SHARED) -DHTML_DOCS=off -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(shell pwd)
 ITPP_HEADERS := $(shell find itpp/itpp -name '*.h'  -o -name '*.hpp')
 ITPP_SOURCES := $(shell find itpp/itpp -name '*.c' -o -name '*.cpp')
 
@@ -72,47 +110,25 @@ TARGETS = $(patsubst $(OBJDIR)/%,$(EXECDIR)/%,$(OBJECTS_PROG:.o=))
 DFILES := $(OBJECTS:.o=.d)
 
 
-NODEPS := clean clean-progs 
+NODEPS := clean clean-all
 
 # ========== Degugging of Makefile
 #$(info $$TARGETS is [${TARGETS}])
+#$(info $$OBJECTS is [${OBJECTS}])
 #$(info $$OSOURCES is [${OSOURCES}])
 #$(info $$TSOURCES is [${TSOURCES}])
 
 #================ Makefile targets
 
-# Phony Targets
-.PHONY: clean all doc
 
-#TARGETS =  $(EXECDIR)/ber_sim $(EXECDIR)/de_sim $(EXECDIR)/degree_opt $(EXECDIR)/dat2alist $(EXECDIR)/ens2deg $(EXECDIR)/gen_code $(EXECDIR)/gen_ensemble $(EXECDIR)/alist2fullrank
+
+# Phony Targets
+.PHONY: clean clean-all all doc
 
 
 # Compile
 all: $(TARGETS)
 
-# Targets: 
-# Test explicit linking, for reference
-#$(EXECDIR)/ber_sim: $(OBJECTS)
-#	@echo " Linking $@..."
-#	@mkdir -p $(dir $@)
-#	$(CXX)  -o $@ \
-#		$(OBJDIR)/$(notdir $@).o  \
-#		$(OBJDIR)/LDPC_DE.o \
-#		$(OBJDIR)/LDPC_Code_LUT.o \
-#		$(OBJDIR)/LDPC_BER_Sim.o \
-#		$(OBJDIR)/gitversion.o \
-#		$(LIB_PATH) \
-#		$(LITPP) \
-#		-llapack \
-#		-lfftw3 \
-#		-lblas \
-#		-lgomp \
-#		-static-libstdc++ \
-#		-Wl,-Bstatic \
-#			-lboost_filesystem \
-#			-lboost_program_options \
-#			-lboost_system \
-		
 
 # other target implicit linking
 $(TARGETS): $(OBJECTS)
@@ -132,18 +148,18 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
 endif
 
 # Create dependencies for cpp files without main function
-$(OBJDIR)/%.d: $(SRCDIR)/%.cpp
+$(OBJDIR)/%.d: $(SRCDIR)/%.cpp  $(ITPP_TARGET)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CFLAGS) $(INCLUDE) -MM $< > $@
 	
 # Create dependencies for cpp files with main function
-$(OBJDIR)/%.d: $(PROGDIR)/%.cpp
+$(OBJDIR)/%.d: $(PROGDIR)/%.cpp  $(ITPP_TARGET)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CFLAGS) $(INCLUDE) -MM $< > $@
 	
 	
 # Write Git Version to file for reproducibility of results
-$(SRCDIR)/gitversion.cpp: ../.git/HEAD ../.git/index
+$(SRCDIR)/gitversion.cpp: .git/HEAD .git/index
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 
 # Build ITPP and install (headers go into include/, the lib itself into lib/)
@@ -166,29 +182,32 @@ $(OBJDIR)/%.o: $(PROGDIR)/%.cpp $(OBJDIR)/%.d $(ITPP_TARGET)
 # Documentation
 doc:
 	doxygen $(DOCDIR)/Doxyfile
+	./doc/doxy_post.sh
 	
 # Installation	
 install-debug:
-	mkdir -p bin
-	cp $(BUILD_DIR)/debug/programs/* bin/
+	mkdir -p $(INSTALLDIR)
+	cp $(BUILD_DIR)/debug/programs/* $(INSTALLDIR)/
+
 	
 install-release:
-	mkdir -p bin
-	cp $(BUILD_DIR)/release/programs/* bin/
+	mkdir -p $(INSTALLDIR)
+	cp $(BUILD_DIR)/release/programs/* $(INSTALLDIR)/
 
-install-remote:
-	rsync -avzth --delete $(BUILD_DIR)/release/programs/ gate:~/epfl-tuwien-ldpc/cpp/bin/ 
 
+install: install-release
+	
 # Delete everything 
-clean:
-	rm -rf $(BUILD_DIR)
-	@rm -rf $(shell find $(DOCDIR)/* -not -name .gitignore -not -name Doxyfile -not -name README.md );
+clean-all:
+	rm -rf $(BUILD_DIR);
+	rm -rf doc/{html,latex}
 	rm -rf lib/libitpp*
+	rm -rf itpp/build*
 	rm -rf $(INCDIR)/itpp	
 	rm -rf $(SRCDIR)/gitversion.cpp
 	
 # Delete only executables (force relinking)
-clean-progs:
-	rm -rf $(EXECDIR);
+clean:
+	rm -rf $(BUILD_DIR);
 
 

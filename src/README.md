@@ -1,1 +1,0 @@
-Location of source files. Files containing a main function reside within the prog subfolder

@@ -1,0 +1,47 @@
+\tikzset{
+   leavenode/.style = {align=center, inner sep=2pt, text centered },
+   imnode/.style = {align=center, inner sep=1pt, text centered},
+   level 1/.style={sibling distance=56mm},
+   level 2/.style={sibling distance=28mm},
+   level 3/.style={sibling distance=14mm},
+   level 4/.style={sibling distance=7mm},
+}
+
+\def\imstring{\texttt{i}}
+\def\chastring{\texttt{c}}
+\def\msgstring{\texttt{m}}
+\def\rootstring{\texttt{r}}
+
+
+\begin{tikzpicture}[<-, >=stealth]
+\node (root)[imnode] {\rootstring}
+   child{ node[imnode] {\imstring}
+      child{ node[imnode] {\imstring}
+         child{ node [leavenode] {\msgstring}
+         }
+         child{ node[imnode] {\imstring}
+            child{ node [leavenode] {\msgstring}
+            }
+            child{ node [leavenode] {\msgstring}
+            }
+         }
+      }
+      child{ node[imnode] {\imstring}
+         child{ node[imnode] {\imstring}
+            child{ node [leavenode] {\msgstring}
+            }
+            child{ node [leavenode] {\msgstring}
+            }
+         }
+         child{ node[imnode] {\imstring}
+            child{ node [leavenode] {\msgstring}
+            }
+            child{ node [leavenode] {\msgstring}
+            }
+         }
+      }
+   }
+   child{ node [leavenode] {\chastring}
+   }
+;
+\end{tikzpicture}

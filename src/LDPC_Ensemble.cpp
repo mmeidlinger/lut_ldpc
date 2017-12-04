@@ -421,3 +421,39 @@ LDPC_Ensemble lut_ldpc::get_empirical_ensemble(const LDPC_Parity& H){
     chk_edge_deg = chk_edge_deg/sum(chk_edge_deg);
     return LDPC_Ensemble(var_edge_deg, chk_edge_deg);
 }
+
+std::ostream& lut_ldpc::operator<<(std::ostream &os, const LDPC_Ensemble &ens){
+    TextTable l( '-', '|', '+' );
+    l.add( "VN degrees" );
+    for(int ii=0; ii<ens.dv_act; ii++){
+        std::ostringstream strs;
+        strs << ens.degree_lam(ii);
+        l.add( strs.str() );
+    }
+    l.endOfRow();
+    l.add( "VN edge pmf" );
+    for(int ii=0; ii<ens.dv_act; ii++){
+        std::ostringstream strs;
+        strs << ens.lam(ii);
+        l.add( strs.str() );
+    }
+    l.endOfRow();
+    TextTable r( '-', '|', '+' );
+    r.add( "CN degrees" );
+    for(int ii=0; ii<ens.dc_act; ii++){
+        std::ostringstream strs;
+        strs << ens.degree_rho(ii);
+        r.add( strs.str() );
+    }
+    r.endOfRow();
+    r.add( "CN edge pmf" );
+    for(int ii=0; ii<ens.dc_act; ii++){
+        std::ostringstream strs;
+        strs << ens.rho(ii);
+        r.add( strs.str() );
+    }
+    r.endOfRow();
+    
+    os << l << r;
+    return os;
+}

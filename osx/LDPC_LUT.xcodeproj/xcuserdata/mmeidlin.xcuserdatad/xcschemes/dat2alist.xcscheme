@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D549C60A1FD09C3F00A4FD4E"
-               BuildableName = "reuse_vec_opt"
-               BlueprintName = "reuse_vec_opt"
+               BlueprintIdentifier = "D5E391D41FD16E0800A4FD4E"
+               BuildableName = "dat2alist"
+               BlueprintName = "dat2alist"
                ReferencedContainer = "container:LDPC_LUT.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,9 +33,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D549C60A1FD09C3F00A4FD4E"
-            BuildableName = "reuse_vec_opt"
-            BlueprintName = "reuse_vec_opt"
+            BlueprintIdentifier = "D5E391D41FD16E0800A4FD4E"
+            BuildableName = "dat2alist"
+            BlueprintName = "dat2alist"
             ReferencedContainer = "container:LDPC_LUT.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -58,9 +58,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D549C60A1FD09C3F00A4FD4E"
-            BuildableName = "reuse_vec_opt"
-            BlueprintName = "reuse_vec_opt"
+            BlueprintIdentifier = "D5E391D41FD16E0800A4FD4E"
+            BuildableName = "dat2alist"
+            BlueprintName = "dat2alist"
             ReferencedContainer = "container:LDPC_LUT.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,9 +77,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D549C60A1FD09C3F00A4FD4E"
-            BuildableName = "reuse_vec_opt"
-            BlueprintName = "reuse_vec_opt"
+            BlueprintIdentifier = "D5E391D41FD16E0800A4FD4E"
+            BuildableName = "dat2alist"
+            BlueprintName = "dat2alist"
             ReferencedContainer = "container:LDPC_LUT.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

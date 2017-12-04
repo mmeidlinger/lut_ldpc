@@ -5,3 +5,4 @@
 !.gitignore
 !README.md
 !Doxyfile
+!doxy_post.sh

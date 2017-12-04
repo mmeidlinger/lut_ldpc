@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>alist2ens.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
 		<key>ber_sim.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -11,10 +16,20 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>dat2alist.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
 		<key>de_sim.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
+		</dict>
+		<key>ens2deg.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
 		</dict>
 		<key>master.xcscheme</key>
 		<dict>
@@ -80,6 +95,21 @@
 			<true/>
 		</dict>
 		<key>D5C49F1B1CEDD76E00A4FD4E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D5E391D41FD16E0800A4FD4E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D5E391E71FD1919400A4FD4E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D5E391F81FD1939600A4FD4E</key>
 		<dict>
 			<key>primary</key>
 			<true/>

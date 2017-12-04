@@ -20,18 +20,11 @@ To download and install the software open a terminal and enter
 git clone --recursive https://github.com/mmeidlinger/lut_ldpc.git
 cd lut_ldpc
 make
+make install
 ```
-This will compile and link the program as well as the patched IT++ library.
-To locally install the executables from the `build` to the `bin` directory,
-```
-make install-release
-```
-or
-```
-make install-debug
-```
-depending on which version you build ( You can switch between `Debug` and `Release` by passing e.g.  `BUILD_TYPE=Debug`  to `make` (default is `Release`)
-Note that all binaries and headers  are installed locally within the project directory.
+This will compile and link the program as well as the patched IT++ library and install the programs locally within the `lut_ldpc` directory into the `bin` directory.
+By default, the libraries that are usually not included within your OS (boost and itpp) are linked statically to the binary for reasons of portability.
+So `make` is shorthand for  `make BUILD_TYPE=Release LINK_TYPE=static INSTALLDIR=bin`.
 
 
 # Usage
@@ -98,9 +91,9 @@ Have a look at [`params/ber.ini.example`](params/ber.ini.example) for different 
 
 ## Density evolution
 ### Running simulations
-`de_sim` is the program to run density evolution simulation. Exceot to `-h` for help in only takes a parameter file  via the `-p`  option
+`de_sim` is the program to run density evolution simulation. Except for the `-h` option,  in only takes a parameter file  via the `-p`  option:
 ```
-bin/ber_sim -p params/de_sim.ini.example
+$ bin/ber_sim -p params/de_sim.ini.example
 ```
 To simulate [`params/de.ini.example`](params/de.ini.example)
 ```
@@ -147,16 +140,23 @@ Eb/N0 corresponding to thresholds = [0.637884]
 
 
 ## Generating codes
-This repository contains a copy of the PEG [[3]](#Literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
-The copy resides in the `peg` subdirectory and must be compiled separately`peg
+In [[2]](#Literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
+this repository contains a copy of the PEG [[3]](#Literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
+The copy resides in the `peg` subdirectory and must be compiled separately
 ```
-cd peg
-make
+$ cd peg
+$ make
 ```
 Since the peg program expects degree distributions in a slightly different format and doesn't use the `.alist` format for outputting parity check matrices, we wrote the [peg.sh](scripts/peg.sh) script
-to directly convert ensembles to `.alist` files. The script makes use of the programs [``] [``]
-## Optimizing the reuse pattern of LUTs
+to directly convert ensembles to `.alist` files. The script makes use of the programs [`ens2deg`](prog/ens2deg.cpp) and [`dat2alist`](prog/dat2alist.cpp) to convert intputs and outputs to the peg program. E.g., to create a parity check matrix for a length 1000 rate 1/2 code from the degree distribution `ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens`
+and save it under `codes/rate0.50_dv02-17_dc08-09_lut_q4_N1000.alist`,
+```
+$ scripts/peg.sh 500 1000 codes/rate0.50_dv02-17_dc08-09_lut_q4_N1000.alist ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens
+```
 
+## Optimizing the reuse pattern of LUTs
+In general, every iteration of a LUT decoder implements different LUTs. LUTs can be reused for more than one iteration, however, the pattern of reuse must be carefully designed.
+We provide the [`reuse_vec_opt`](prog/reuse_vec_opt.cpp) program to do this:
 ```
 $ bin/reuse_vec_opt --help
     Called program via
@@ -177,18 +177,26 @@ $ bin/reuse_vec_opt --help
         --lut-tree-design arg (=auto_bin_balanced)  Strategy for LUT table creation
         -h [ --help ]                               produce help message
 ```
-
+Warning: `reuse_vec_opt` creates as many threads as iterations specified via the `-i` options, i.e., it is quite demanding on your CPU if executed on a client machine.
+E.g. to optimize the reuse pattern for a code with degree distribution as specified in `ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens`,
+```
+$ bin/reuse_vec_opt -e ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens -t0.89 -i100  -p1e-11 -s0.999 --reuse-stages 25
+```
+Here, the program initially allocates 100 unique LUT stages for every iteration and tries to reduce the number of unique LUTs down to 25.
 
 
 # Codes, Ensembles and Trees
+C.f.  [codes](codes/README.md),  [ensembles](ensembles/README.md) and  [trees](trees/README.md).
 
 
+# Writing your own programs
+The [Makefile](./Makeflei) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
 
 
 
 # Referencing
-If you use this software for your academic research, please consider referencing [our original contributions](#Literature)
-# Literature
+If you use this software for your academic research, please consider referencing our original contributions [[1,2]](#Literature)
+# Literature {#Literature}
 [[1] M. Meidlinger, A. Balatsoukas-Stimming, A. Burg, and G. Matz, “Quantized message passing for LDPC codes,” in Proc. 49th Asilomar Conf. Signals, Systems and Computers, Pacific Grove, CA, USA, Nov. 2015.](http://ieeexplore.ieee.org/document/7421419/)
 
 [[2] M. Meidlinger and G. Matz, “On irregular LDPC codes with quantized message passing decoding,” in Proc. IEEE SPAWC 2017, Sapporo, Japan, Jul. 2017.

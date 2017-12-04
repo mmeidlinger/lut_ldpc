@@ -10,10 +10,12 @@
  */
 
 #include <itpp/itbase.h>
-#include "LDPC_DE.hpp"
+#include "LDPC_Ensemble.hpp"
 
+using namespace lut_ldpc;
 using namespace itpp;
 using namespace std;
+
 int main(int argc, char **argv){
     // Parse file name
     if(argc!=3){

@@ -478,7 +478,7 @@ void LDPC_BER_Sim_LUT::load(){
         if(design_thr)
             sigma2_design = sqr(*design_thr);
         else if(design_SNRdB)
-            sigma2_design = pow10(-(*design_SNRdB)/10)/(2*C_ldpc->get_rate());
+            sigma2_design = itpp::pow10(-(*design_SNRdB)/10)/(2*C_ldpc->get_rate());
         else
             it_error("LDPC_BER_Sim_LUT::load(): No design noise threshold specified");
         

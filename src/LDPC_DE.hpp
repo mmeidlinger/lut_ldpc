@@ -33,6 +33,7 @@
 
 #include "LUT_Tree.hpp"
 #include "LDPC_Ensemble.hpp"
+#include "common.hpp"
 
 
 

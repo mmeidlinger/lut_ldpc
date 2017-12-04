@@ -11,12 +11,13 @@
 
 #include <itpp/itbase.h>
 #include <itpp/itcomm.h>
-#include "LDPC_DE.hpp"
-#include "LDPC_Code_LUT.hpp"
+#include "LDPC_Ensemble.hpp"
 #include <boost/format.hpp>
 
 using namespace itpp;
 using namespace std;
+using namespace lut_ldpc;
+
 int main(int argc, char **argv){
 
     // Parse input name

@@ -1,8 +1,8 @@
-PROJECT_NAME 		= lut_ldpc
+PROJECT_NAME 		= "LUT LDPC"
 PROJECT_BRIEF  		= "LDPC decoding and density evolution for look-up table (LUT) based decoding"
 OUTPUT_DIRECTORY	= doc
-INPUT 			= README.md src prog include codes
-USE_MDFILE_AS_MAINPAGE = README.md
+INPUT 			= ./README.md src prog include codes ensembles trees
+USE_MDFILE_AS_MAINPAGE  = ./README.md 
 FILE_PATTERNS 		= *.cpp *.hpp *.md
 RECURSIVE		 = NO
 VERBATIM_HEADERS = YES
@@ -11,6 +11,7 @@ SHOW_FILES = YES
 # Show Actual Source code (Function and Class Definitions, etc...)
 SOURCE_BROWSER = YES
 
+IMAGE_PATH = trees
 
 # Inlude everything in the doc, even if there are no doxygen comment blocks
 EXTRACT_ALL = YES
