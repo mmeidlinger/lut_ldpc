@@ -1,7 +1,7 @@
 # Introduction
 
 LUT LDPC is a collection of software tools to design and test LDPC decoders based on discrete message passing decoding
-using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#Literature). It is mainly written in C++ and relies heavily on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
+using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#literature). It is mainly written in C++ and relies heavily on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
 Consequently, the LUT decoders can easily be integrated into more complex communication systems including concatenated coding and/or modulation.
 
 # Installation
@@ -140,8 +140,8 @@ Eb/N0 corresponding to thresholds = [0.637884]
 
 
 ## Generating codes
-In [[2]](#Literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
-this repository contains a copy of the PEG [[3]](#Literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
+In [[2]](#literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
+this repository contains a copy of the PEG [[3]](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
 The copy resides in the `peg` subdirectory and must be compiled separately
 ```
 $ cd peg
@@ -190,13 +190,13 @@ C.f.  [codes](codes/README.md),  [ensembles](ensembles/README.md) and  [trees](t
 
 
 # Writing your own programs
-The [Makefile](./Makeflei) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
+The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
 
 
 
 # Referencing
-If you use this software for your academic research, please consider referencing our original contributions [[1,2]](#Literature)
-# Literature {#Literature}
+If you use this software for your academic research, please consider referencing our original contributions [[1,2]](#literature)
+# Literature {#literature}
 [[1] M. Meidlinger, A. Balatsoukas-Stimming, A. Burg, and G. Matz, “Quantized message passing for LDPC codes,” in Proc. 49th Asilomar Conf. Signals, Systems and Computers, Pacific Grove, CA, USA, Nov. 2015.](http://ieeexplore.ieee.org/document/7421419/)
 
 [[2] M. Meidlinger and G. Matz, “On irregular LDPC codes with quantized message passing decoding,” in Proc. IEEE SPAWC 2017, Sapporo, Japan, Jul. 2017.
