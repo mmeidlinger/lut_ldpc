@@ -56,4 +56,6 @@ UML_LIMIT_NUM_FIELDS = 0
 # Show relationship for templates in graphs
 TEMPLATE_RELATIONS = YES
 
-
+# Style
+#HTML_EXTRA_STYLESHEET = doc/doxygen-theme/customdoxygen.css
+#LAYOUT_FILE = doc/doxygen-theme/DoxygenLayout.xml
