@@ -84,7 +84,7 @@ produces the output
 0
 3 0 16
 ```
-The first line `0 8` indicates that it is a variable node tree (`0`) with `8` leaves. Subsequently, each tree nodes is characterized by up to 3 lines, e.g.
+The first line `0 8` indicates that it is a variable node tree (`0`, cf. lut_ldpc::LUT_Tree::tree_type_e for all types) with `8` leaves. Subsequently, each tree nodes is characterized by up to 3 lines, e.g.
 ```
 2
 1 128 16
@@ -92,6 +92,6 @@ The first line `0 8` indicates that it is a variable node tree (`0`) with `8` le
 ```
 
 The first line `2` specifies the numer of children of the node.
-The second line `1 128 16` specifies node type (`0` for intermediate, `1` for root, `2` for message and `3` for channel, cf. node_type_e), input and output resolution, respectively.
+The second line `1 128 16` specifies node type (`0` for intermediate, `1` for root, `2` for message and `3` for channel, cf. lut_ldpc::LUT_Tree_Node::node_type_e), input and output resolution, respectively.
 If the input resolution is greater than zero (meaning its a non child node containing a LUT, type `0` or `1`), the third line specifies the LUT of the node. As in before, the ordering of the nodes is pre-order depth-first.
 

@@ -17,7 +17,7 @@ Dynamically linked versions could be obtained by changing the [Makefile](./Makef
 
 To download and install the software open a terminal and enter
 ```
-git clone --recursive https://github.com/mmeidlinger/lut_ldpc.git
+git clone --recursive https://dev.meidlinger.info/michael.meidlinger/lut_ldpc.git
 cd lut_ldpc
 make
 make install
