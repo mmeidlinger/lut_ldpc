@@ -46,7 +46,7 @@ OPTIONS:
     -s [ --seed ] arg (=0)                              random seed
 ```
 Most importantly, the `-p` option specifies the parameter file to configure the simulation. An example of such a files is given below, which is a stripped down version of
-[`params/ber.ini.example`](params/ber.ini.example):
+[`params/ber.ini.irregular.example`](params/ber.ini.irregular.example):
 ```
 [Sim]
    SNRdB    = 0:.5:4
@@ -67,13 +67,13 @@ and for each SNR point (`SNRdB    = 0:.5:4`) , at most 100 frames are simulated 
 
 So running
 ```
-$ prog/ber_sim -p params/ber_sim.ini.example
+$ prog/ber_sim -p params/ber_sim.irregular.ini.example
 ```
 Produces
 ```
  results/
     RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT/
-        ber.ini.example
+        ber.ini.irregular.example
         lut_codec.it
         RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT_rseed0000.it
 ```
@@ -87,7 +87,7 @@ K>> analyze_results('results, {RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT_rse
 ```
 
 ### Comparing to other decoders
-Have a look at [`params/ber.ini.example`](params/ber.ini.example) for different configuration options. `ber_sim` also supports conventional belief propagation (BP) decoding and min-sum decoding. We patched IT++ to support decoding with finite bit width to compare low resolution BP and LUT decoding.
+Have a look at [`params/ber.ini.irregular.example`](params/ber.ini.irregular.example) for different configuration options. `ber_sim` also supports conventional belief propagation (BP) decoding and min-sum decoding. We patched IT++ to support decoding with finite bit width to compare low resolution BP and LUT decoding.
 
 ## Density evolution
 ### Running simulations
