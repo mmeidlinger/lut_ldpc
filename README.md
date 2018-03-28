@@ -141,7 +141,7 @@ Eb/N0 corresponding to thresholds = [0.637884]
 
 ## Generating codes
 In [[2]](#literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
-this repository contains a copy of the PEG [[3]](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
+this repository contains a copy of the PEG [[4]](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
 The copy resides in the `peg` subdirectory and must be compiled separately
 ```
 $ cd peg
@@ -189,20 +189,31 @@ Here, the program initially allocates 100 unique LUT stages for every iteration 
 C.f.  [codes](codes/README.md),  [ensembles](ensembles/README.md) and  [trees](trees/README.md).
 
 
+# Creating VHDL Code for an Unrolled Decoder
+Using the MATLAB scripts of the [lut_ldpc_vhdl](lut_ldpc_vhdl/README.md) submodule, the VHDL source code for an unrolled decoder (cf. [[3-4]](#literature))
+can be generated based on the decoders exported by LUT LDPC C++ program.
+For more details, cf.  the [documentation of lut_ldpc_vhdl](lut_ldpc_vhdl/README.md)
+
 # Writing your own programs
 The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
 
 
 
 # Referencing
-If you use this software for your academic research, please consider referencing our original contributions [[1,2]](#literature)
-# Literature {#literature}
+If you use this software for your academic research, please consider referencing our original contributions [[1,2,3,4]](#literature)
+# Literature
 [[1] M. Meidlinger, A. Balatsoukas-Stimming, A. Burg, and G. Matz, “Quantized message passing for LDPC codes,” in Proc. 49th Asilomar Conf. Signals, Systems and Computers, Pacific Grove, CA, USA, Nov. 2015.](http://ieeexplore.ieee.org/document/7421419/)
 
 [[2] M. Meidlinger and G. Matz, “On irregular LDPC codes with quantized message passing decoding,” in Proc. IEEE SPAWC 2017, Sapporo, Japan, Jul. 2017.
-](http://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=On%20irregular%20LDPC%20codes%20with%20quantized%20message%20passing%20decoding)
+](http://ieeexplore.ieee.org/document/8227780/)
 
-[[3] X.-Y. Hu, E. Eleftheriou, and D. Arnold, “Regular and irregular progressive edge-growth tanner graphs,” IEEE Trans. Information Theory, vol. 51, no. 1, pp. 386–398, Jan. 2005.
+[[3]  A. Balatsoukas-Stimming, M. Meidlinger, R. Ghanaatian, G. Matz, and A. Burg, “A fully-unrolled LDPC decoder based on quantized message passing,” in Proc. SiPS 2015, Hang Zhou, China, 10 2015.
+](http://ieeexplore.ieee.org/abstract/document/7345024/)
+
+[[4] R. Ghanaatian, A. Balatsoukas-Stimming, C. Mu ̈ller, M. Meidlinger, G. Matz, A. Teman, and A. Burg, “A 588 Gbps LDPC decoder based on finite-alphabet message passing,” IEEE Trans. VLSI Systems, vol. 26, no. 2, pp. 329–340, 2 2018.
+](http://ieeexplore.ieee.org/document/8113527/)
+
+[[5] X.-Y. Hu, E. Eleftheriou, and D. Arnold, “Regular and irregular progressive edge-growth tanner graphs,” IEEE Trans. Information Theory, vol. 51, no. 1, pp. 386–398, Jan. 2005.
 ](http://ieeexplore.ieee.org/document/1377521/)
 
 

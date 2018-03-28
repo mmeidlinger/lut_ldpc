@@ -2,3 +2,6 @@
 	path = itpp
 	url = ssh://gitlab@dev.meidlinger.info/michael.meidlinger/itpp.git
 	branch = ldpc-lut
+[submodule "lut_ldpc_vhdl"]
+	path = lut_ldpc_vhdl
+	url = gitlab@dev.meidlinger.info:michael.meidlinger/lut_ldpc_vhdl.git
