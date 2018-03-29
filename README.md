@@ -9,7 +9,7 @@ Consequently, the LUT decoders can easily be integrated into more complex commun
 ## Requirements
 The program has been tested on MacOSX and Linux, but with minor modification, will most likely also run on Windows.
 The instructions here refer to a linux install.
-Other than the source code in this repository and its submodules, you only need a static version of the [boost C++ libraries](http://http://www.boost.org/).
+Other than the source code in this repository and its submodules, you only need a static version of the [boost C++ libraries](http://www.boost.org/).
 [IT++](http://itpp.sourceforge.net/) is included via a submodlue because we had to do some patching to get access to internals of its classes.
 
 We favoured static over dynamic linking for portability, as we ran the compiled binaries on an inhomogeneous cluster of Linux hosts.
