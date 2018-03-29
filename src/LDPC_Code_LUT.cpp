@@ -536,6 +536,7 @@ void LDPC_Code_LUT::load_code(const std::string& filename, LDPC_Generator* const
     
     f >> Name("Nq_Cha") >> Nq_Cha;
     f >> Name("Nq_Msg") >> Nq_Msg;
+    f >> Name("Nq_Cha_2_Nq_Msg_map") >> Nq_Cha_2_Nq_Msg_map;
     f >> Name("qb_Cha") >> qb_Cha;
     f >> Name("qb_Msg") >> qb_Msg;
     f >> Name("reuse_vec") >> reuse_vec;
@@ -609,6 +610,7 @@ void LDPC_Code_LUT::save_code(const std::string& filename) const
     
     f << Name("Nq_Cha") << Nq_Cha;
     f << Name("Nq_Msg") << Nq_Msg;
+    f << Name("Nq_Cha_2_Nq_Msg_map") << Nq_Cha_2_Nq_Msg_map;
     f << Name("qb_Cha") << qb_Cha;
     f << Name("qb_Msg") << qb_Msg;
     f << Name("reuse_vec") << reuse_vec;
@@ -672,6 +674,14 @@ double LDPC_Code_LUT::design_luts(const std::string& tree_method,
 
     // Set codec properties
     set_trees(var_luts, chk_luts);
+    
+    // Calculate Nq_Cha_2_Nq_Msg_map
+    const double LLR_max_mag = 25.0;
+    double delta = 2*LLR_max_mag/Nq_Cha;
+    vec p_cha = get_gaussian_pmf(2/sigma2, 2/sig, Nq_Cha, 0);
+    vec pmf_channel= get_gaussian_pmf(2/sqr(sig), 2/sig, Nq_Cha, delta);
+    vec p_msg;
+    (void) quant_mi_sym(p_msg, Nq_Cha_2_Nq_Msg_map, pmf_channel, Nq_Msg(0), true);
   
     LUTs_defined = true;
     return sig;

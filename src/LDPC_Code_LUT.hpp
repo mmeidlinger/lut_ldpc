@@ -313,8 +313,16 @@ private:
     //! Resolution of messages for each iteration
     ivec Nq_Msg;
     
-    // Quantization boundaries to transform continous input LLRs to a discrete internal LLR representation
+    //! Quantization boundaries to transform continous input LLRs to a discrete internal LLR representation
     vec qb_Cha, qb_Msg;
+    
+    /*!
+     \brief
+     Information optimal quantizer for mapping discrete messages from Nq_Cha resolution to Nq_Msg resolution
+     
+     This vector is not used internally for decoding but is rather used when exporting the decoder to VHDL
+     */
+    ivec Nq_Cha_2_Nq_Msg_map;
     
     //! Vector of length nvar indicating which tree to use for the var updates
     ivec var_tree_idx_degree;

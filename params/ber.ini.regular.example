@@ -103,5 +103,5 @@
 ;   tree_mode = auto_bin_balanced
 ;  Where to look for tree files
    trees_dir = file 
-   trees_filename =
+   trees_filename = 6_32_wide.ini
 
