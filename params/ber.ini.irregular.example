@@ -104,4 +104,8 @@
 ;  Where to look for tree files
 ;   trees_dir = trees 
 ;   trees_filename =
+;  Set this to an integer>0 to print pairs of decoder inputs (quantized channel LLRs in hexadecimal format) and outputs (pattern of zeros and ones)
+;   output_verbosity = 0
+;  How the messages for the initial decoding iteration are obtained. Options are "from_continuous_input" "from_quantized_channel_llrs"
+;   initial_message_mode = from_continuous_input 
 

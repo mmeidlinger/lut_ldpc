@@ -49,7 +49,7 @@ LDPC_Code_LUT::LDPC_Code_LUT():
 LDPC_Code_LUT::LDPC_Code_LUT(const LDPC_Parity* const H,
                              LDPC_Generator* const G,
                              bool perform_integrity_check):
-H_defined(false), G_defined(false), LUTs_defined(false)
+H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0), initial_message_mode(CONT)
 {
     
     set_code(H, G, perform_integrity_check);
@@ -64,7 +64,7 @@ LDPC_Code_LUT::LDPC_Code_LUT(const LDPC_Parity* const H_,
                      vec qb_Msg_,
                      LDPC_Generator* const G_,
                      bool perform_integrity_check):
-H_defined(false), G_defined(false), LUTs_defined(false)
+H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0), initial_message_mode(CONT)
 {
     
     
@@ -110,6 +110,8 @@ LDPC_Code_LUT::LDPC_Code_LUT(const LDPC_Parity* const H_,
     set_trees(var_trees_, chk_trees_,  perform_integrity_check);
     minLUT = false;
     LUTs_defined = true;
+    output_verbosity = 0;
+    initial_message_mode = CONT;
     
 }
 
@@ -199,12 +201,39 @@ bvec LDPC_Code_LUT::encode(const bvec &input)
 
 void LDPC_Code_LUT::decode(const vec &llr_in, bvec &syst_bits)
 {
+    // Get quantized channel llrs
     ivec llr_in_cha = quant_nonlin(llr_in, qb_Cha);
-    ivec llr_in_msg = quant_nonlin(llr_in, qb_Msg);
-
+    
+    // Get quantized messages for the initial decoding iteration
+    ivec llr_in_msg;
+    switch (this->initial_message_mode) {
+        case CONT:
+            llr_in_msg = quant_nonlin(llr_in, qb_Msg);
+            break;
+        case QCHA:
+            llr_in_msg = Nq_Cha_2_Nq_Msg_map(llr_in_cha);
+            break;
+        default:
+            it_error("LDPC_Code_LUT::decode(): Initial message mode undefined!");
+            break;
+    }
+    
     bvec llr_out;
     lut_decode(llr_in_cha, llr_in_msg,  llr_out);
     syst_bits = llr_out.left(nvar - nchk_lin_indep);
+    
+    // Print input and output pairs
+    if(output_verbosity>0){
+        std::cout << "Stimuli Pair (Quantized channel LLR decoder inputs in hex format and decoder output in binary format): " << std::endl;
+        for(int ii=0; ii<llr_in_cha.length(); ii++){
+            std::cout << std::setfill('0') << std::setw(8) << std::uppercase << std::hex << llr_in_cha(ii) << "  ";
+        }
+        std::cout << std::endl;
+        for(int ii=0; ii<llr_in_cha.length(); ii++){
+            std::cout << llr_out(ii) << "  ";
+        }
+        std::cout << std::endl << std::endl;
+    }
 }
 
 bvec LDPC_Code_LUT::decode(const vec &llr_in)
@@ -541,6 +570,7 @@ void LDPC_Code_LUT::load_code(const std::string& filename, LDPC_Generator* const
     f >> Name("qb_Msg") >> qb_Msg;
     f >> Name("reuse_vec") >> reuse_vec;
     f >> Name("minLUT") >> minLUT;
+    f >> Name("output_verbosity") >> output_verbosity;
     
     f >> Name("var_tree_string") >> lut_string;
     lut_stream << lut_string;
@@ -615,6 +645,7 @@ void LDPC_Code_LUT::save_code(const std::string& filename) const
     f << Name("qb_Msg") << qb_Msg;
     f << Name("reuse_vec") << reuse_vec;
     f << Name("minLUT") << minLUT;
+    f << Name("output_verbosity") << output_verbosity;
     f << Name("max_iters") << max_iters;
     
     lut_stream << var_trees;

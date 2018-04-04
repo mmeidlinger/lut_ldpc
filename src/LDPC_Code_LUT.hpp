@@ -67,6 +67,22 @@ class LDPC_Code_LUT : public Channel_Code {
     
 friend class LDPC_BER_Sim_LUT;
     
+private:
+    /*!
+     \brief
+     How the messages for the initial decoding iteration are obtained.
+     
+     Options are "CONT" for messages from continuous inputs via quantization and
+     "QCHA" for messages derived from the already quantized channel llrs"
+     */
+    enum initial_message_mode_e{
+        CONT,
+        QCHA,
+        num_initial_message_modes
+    }typedef initial_message_mode_t;
+    //! How the messages for the initial decoding iteration are obtained
+    initial_message_mode_t initial_message_mode;
+    
 public:
     //! Default constructor
     LDPC_Code_LUT();
@@ -250,6 +266,11 @@ public:
     //! Get the maximum number of LDPC decoding iterations
     int get_nrof_iterations() const { return max_iters; }
     
+    //! Set decoder output verbosity
+    void set_output_verbosity(int verb_level){ this->output_verbosity = verb_level;};
+    //! Set initial message mode
+    void set_initial_message_mode(initial_message_mode_t m){ this->initial_message_mode = m;};
+    
     
     inline void chk_update_minsum(int node_idx, int edge_idx, int iter);
     inline void chk_update_lut(int node_idx, int edge_idx, int iter);
@@ -323,6 +344,11 @@ private:
      This vector is not used internally for decoding but is rather used when exporting the decoder to VHDL
      */
     ivec Nq_Cha_2_Nq_Msg_map;
+    
+    //! If != 0, pairs of decoder inputs and outputs are printed to the standard output.
+    int output_verbosity;
+    
+    
     
     //! Vector of length nvar indicating which tree to use for the var updates
     ivec var_tree_idx_degree;

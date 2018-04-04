@@ -14,8 +14,8 @@
 ;  points is terminated if either
 ;     * The bit error rate is below ber_min
 ;     * The frame error rate is below fer_min
-   Nframes  = 1e2
-;   Nfers    = 20
+   Nframes  = 20
+   Nfers    = 20
 ;   ber_min  = 1e-7
 ;   fer_min  = 1e-5
 ;  Random Seed Offset
@@ -44,12 +44,14 @@
 ;   codec_filename = 
 
 
+
+
 ; Settings for the LDPC code. Further variables (codeword lendth, etc... 
 ; are determined upon loading the code)
 [LDPC]
    parity_filename = rate0.84_reg_v6c32_N2048
 ;  Wether a Generator matrix is used to encode random datawords or the all zero word is sent
-   zero_codeword   = false 
+   zero_codeword   = true 
 ;  Wether the Generator Matrix and the corresponding (possibly permuted) Parity Check Matrix that are generated
 ;  if LDPC.zero_codeword = true are saved to disk, potentially overwriting the original Parity check .alist file.
 ;   save_permuted = false
@@ -104,4 +106,10 @@
 ;  Where to look for tree files
    trees_dir = file 
    trees_filename = 6_32_wide.ini
+;  Set this to an integer>0 to print pairs of decoder inputs (quantized channel LLRs in hexadecimal format) and outputs (pattern of zeros and ones)
+   output_verbosity = 1
+;  How the messages for the initial decoding iteration are obtained. Options are "from_continuous_input" "from_quantized_channel_llrs"
+   initial_message_mode = from_quantized_channel_llrs 
+
+
 

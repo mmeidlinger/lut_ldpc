@@ -64,7 +64,6 @@ LDPC_BER_Sim::LDPC_BER_Sim(const boost::filesystem::path& params_file_path, cons
     codec_filename = param_tree.get("Sim.codec_filename", "");
     
     
-    
     // LDPC Code Settings
     parity_filename = param_tree.get("LDPC.parity_filename", "");
     zero_codeword = param_tree.get("LDPC.zero_codeword", true);
@@ -388,6 +387,9 @@ LDPC_BER_Sim_LUT::LDPC_BER_Sim_LUT(const boost::filesystem::path& params_file_pa
     max_iter = param_tree.get("LUT.max_iter", 30);
     design_thr = param_tree.get_optional<double>("LUT.design_thr");
     design_SNRdB = param_tree.get_optional<double>("LUT.design_SNRdB");
+    decoder_output_verbosity = param_tree.get("LUT.output_verbosity", 0);
+    initial_message_mode = param_tree.get("LUT.initial_message_mode", "from_continuous_input");
+
     
     it_assert(design_thr || design_SNRdB, "LDPC_BER_Sim_LUT::LDPC_BER_Sim_LUT(): No design SNR or noise thresold specified");
     
@@ -497,6 +499,14 @@ void LDPC_BER_Sim_LUT::load(){
         }
         
         C_ldpc->set_exit_conditions(max_iter, parity_check_iter, parity_check_iter);
+        C_ldpc->set_output_verbosity(decoder_output_verbosity);
+        if(this->initial_message_mode == "from_continuous_input")
+            C_ldpc->set_initial_message_mode(LDPC_Code_LUT::CONT);
+        else if(this->initial_message_mode == "from_quantized_channel_llrs")
+            C_ldpc->set_initial_message_mode(LDPC_Code_LUT::QCHA);
+        else
+            it_error("LDPC_BER_Sim_LUT::load(): Initial message mode undefined!");
+
         C = C_ldpc;
         
         // Save codec

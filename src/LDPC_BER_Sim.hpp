@@ -189,6 +189,9 @@ public:
     bool min_lut;                            //!< If true, the check node update is based on a minimum operation on sorted labels rather than a LUT
     boost::optional<double> design_thr;      //!< For which noise standard deviation (Assuming BIAWGN  hannel) the LUT's should be designed.
     boost::optional<double> design_SNRdB;    //!< For which (Eb/N0)_dB (Assuming BIAWGN  hannel) the LUT's should be designed.
+    int decoder_output_verbosity;           //!< Output verbosity of decoder
+    std::string initial_message_mode;           //!< How messages for the initial decoding iterations are obtained
+
     
     
     //! Generate filename
