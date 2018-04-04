@@ -1,7 +1,7 @@
 PROJECT_NAME 		= "LUT LDPC"
 PROJECT_BRIEF  		= "LDPC decoding and density evolution for look-up table (LUT) based decoding"
 OUTPUT_DIRECTORY	= doc
-INPUT 			= ./README.md src prog include codes ensembles trees lut_ldpc_vhdl
+INPUT 			= ./README.md src prog include codes ensembles trees lut_ldpc_vhdl doc/impressum.txt
 USE_MDFILE_AS_MAINPAGE  = ./README.md 
 FILE_PATTERNS 		= *.cpp *.hpp *.md
 RECURSIVE		 = NO

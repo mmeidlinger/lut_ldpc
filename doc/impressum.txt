@@ -1,0 +1,41 @@
+/*! \page impressum Impressum
+ \tableofcontents
+
+\section offenlegung Offenlegung gemäß § 25 Mediengesetz
+ Inhaber der Website:
+
+
+ Technische Universität Wien 
+
+ Institute of Telecommunications
+
+ Gußhausstraße 25 / E 389
+ 
+
+ A-1040 WienTelefon: +43-1 58801 389 01
+
+ Fax: +43-1 58801 389 99
+
+ UID ATU 37675002
+
+\section ext_links Verweise zu externen Internetseiten (externe Links)
+
+Verweise zu anderen Webseiten wurden sorgfältig ausgewählt. Das Institute of Telecommunications betont ausdrücklich, dass es keinen Einfluss auf die Gestaltung und die Inhalte der verlinkten Seiten hat. Deshalb erklären wir hiermit, dass wir keinerlei Verantwortung für Inhalte und Darstellungen externer Internetseiten übernehmen. Jegliche Haftung für externe Internetseiten ist damit ausgeschlossen.
+
+\section copyright Copyright Notice
+
+Copyright of Material in the institute of telecommunications Web Pages.
+
+Please note that the institute of telecommunications reserves copyright in all material appearing in its pages accessible through the World Wide Web, unless an explicit statement to the contrary appears in any particular page (or pages below it).
+
+Permission is given only to copy material appearing in these pages for the purposes of reading them, executing them, or otherwise processing that is directly necessary in order to fulfil the apparent intent of the institute of telecommunications in placing them on the Web. Copies may be held on other systems only for personal reference purposes or for expediting access to them (eg storing in caches).
+
+No permission is given to further reproduce or to distribute any material appearing in these pages.
+
+Vienna, 2018
+
+\section webredaktion Webredaktion
+
+mmeidlin@nt.tuwien.ac.at
+
+ */
