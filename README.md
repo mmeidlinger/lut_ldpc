@@ -179,7 +179,7 @@ $ bin/reuse_vec_opt --help
 ```
 Warning: `reuse_vec_opt` creates as many threads as iterations specified via the `-i` options, i.e., it is quite demanding on your CPU if executed on a client machine.
 E.g. to optimize the reuse pattern for a code with degree distribution as specified in `ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens`,
-```
+```bash
 $ bin/reuse_vec_opt -e ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens -t0.89 -i100  -p1e-11 -s0.999 --reuse-stages 25
 ```
 Here, the program initially allocates 100 unique LUT stages for every iteration and tries to reduce the number of unique LUTs down to 25.
@@ -190,9 +190,18 @@ C.f.  [codes](codes/README.md),  [ensembles](ensembles/README.md) and  [trees](t
 
 
 # Creating VHDL Code for an Unrolled Decoder
-Using the MATLAB scripts of the [lut_ldpc_vhdl](lut_ldpc_vhdl/README.md) submodule, the VHDL source code for an unrolled decoder (cf. [[3-4]](#literature))
+Using the MATLAB scripts of the [LUT-LDPC-VHDL](lut_ldpc_vhdl/README.md) submodule, the VHDL source code for an unrolled decoder (cf. [[3-4]](#literature))
 can be generated based on the decoders exported by LUT LDPC C++ program.
-For more details, cf.  the [documentation of lut_ldpc_vhdl](lut_ldpc_vhdl/README.md)
+In order to generate a decoder object and some input-output pairs run
+
+```bash
+$ bin/ber_sim -p params/ber.ini.regular.example > stimuli.txt
+```
+This will simulate 20 frame per SNR value and create the decoder object  `results/RES_N2048_R0.841309_maxIter8_zcw1_frames20_minLUT/lut_codec.it`. Furthermore,  pairs of decoder inputs and corresponding decoder outputs are written to the text file `stimuli.txt`.
+
+The decoder object  `lut_codec.it` can then be used as an input to generate corresponding VHDL, while the pairs in `stimuli.txt` can be used to verify the correctnes of the resulting VHDL against the simulation model.
+
+For more details, cf.  the [documentation of LUT-LDPC-VHDL](lut_ldpc_vhdl/README.md)
 
 # Writing your own programs
 The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
