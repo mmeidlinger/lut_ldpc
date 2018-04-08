@@ -1,7 +1,7 @@
 # Introduction
 
 LUT LDPC is a collection of software tools to design and test LDPC decoders based on discrete message passing decoding
-using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#literature). It is mainly written in C++ and relies heavily on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
+using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#literature). It is mainly written in C++ and relies  on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
 Consequently, the LUT decoders can easily be integrated into more complex communication systems including concatenated coding and/or modulation.
 
 # Installation
@@ -9,15 +9,25 @@ Consequently, the LUT decoders can easily be integrated into more complex commun
 ## Requirements
 The program has been tested on MacOSX and Linux, but with minor modification, will most likely also run on Windows.
 The instructions here refer to a linux install.
-Other than the source code in this repository and its submodules, you only need a static version of the [boost C++ libraries](http://www.boost.org/).
+Go ahead and install all dependencies.
+On modern Linux distributions you can fetch all neccesary required libraries using a package manager. E.g., un Ubuntu you can
+```bash
+$ sudo apt-get install git build-essential cmake libboost-all-dev libfftw3-dev liblapack-dev libblas-dev
+```
+
+Other than the source code in this repository and its submodules, you need the [boost C++ libraries](http://www.boost.org/).
+
+
 [IT++](http://itpp.sourceforge.net/) is included via a submodlue because we had to do some patching to get access to internals of its classes.
+In order to successfully compile with IT++, you require its dependencies that are FFTW3, LAPACK an BLAS, cf. [http://itpp.sourceforge.net/4.3.1/](http://itpp.sourceforge.net/4.3.1/). Often, those packages are included with your OS already, but usually as dynammically linked libraries. For static archives,
+you can install develepoment versions of those packages similar as demonstrated above for the case of the boost libraries.
 
 We favoured static over dynamic linking for portability, as we ran the compiled binaries on an inhomogeneous cluster of Linux hosts.
 Dynamically linked versions could be obtained by changing the [Makefile](./Makefile) appropriately.
 
 To download and install the software open a terminal and enter
-```
-git clone --recursive https://dev.meidlinger.info/michael.meidlinger/lut_ldpc.git
+```bash
+git clone --recursive https://github.com/mmeidlinger/lut_ldpc.git
 cd lut_ldpc
 make
 make install
@@ -29,14 +39,14 @@ So `make` is shorthand for  `make BUILD_TYPE=Release LINK_TYPE=static INSTALLDIR
 
 # Usage
 
-LUT LDPC consists of several programs and scripts, whose usage we will discuss in what follows. In general, we want to emphasize that LUT LDPC is a research driven toolset. As such, its functionality should be used more like a library than via the included programs. Hence,
-the ways to interact with the programs are limited and applying the software to specific and complex scenarios requires the user to write and compile their own programs. To assist users with that, LUT LDPC features [Doxygen](http://www.doxygen.org/) inline source code documentation.
+LUT-LDPC consists of several programs and scripts, whose usage we will discuss in what follows. In general, we want to emphasize that LUT-LDPC is a research driven toolset. As such, its functionality should be used more like a library than via the included programs. Hence,
+the ways to interact with the programs are limited and applying the software to specific and complex scenarios requires the user to write and compile their own programs. To assist users with that, LUT-LDPC features [Doxygen](http://www.doxygen.org/) inline source code documentation.
 
 ## Designing LUT Decoders and testing Bit Error rate performance
 ### Running the simulation
 `ber_sim` is capable of designing decoders and conducting bit error rate (BER) Monte Carlo simulations.
 It takes the following parameters, which can be displayed by
-```
+```bash
 $ bin/ber_sim -h
 OPTIONS:
     -b [ --basedir ] arg (=/absolute/path/to/lut_ldpc)  paths in params files are relative to this directory. Default: current direcroy
@@ -66,7 +76,7 @@ For the LDPC code, the parity check matrix `codes/rate0.50_dv02-17_dc08-09_lut_q
 and for each SNR point (`SNRdB    = 0:.5:4`) , at most 100 frames are simulated (`Nframes  = 1e2`). The results as well as the decoder object of the simulation are automatically saved into the `results` directory, where the name is derived from the simulation setting ( The `custom_name =` option can be used to apped a string to the auto generated results name).
 
 So running
-```
+```bash
 $ prog/ber_sim -p params/ber_sim.irregular.ini.example
 ```
 Produces
@@ -81,7 +91,7 @@ As we can see, the folder `RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT` is gen
 
 ### Evaluating the results
 The results can now be visualized using the MATLAB script  [`scripts/analyze_results.m`](scripts/analyze_results.m)
-```
+```matlab
 K>> addpath scripts;
 K>> analyze_results('results, {RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT_rseed0000.it}')
 ```
@@ -92,7 +102,7 @@ Have a look at [`params/ber.ini.irregular.example`](params/ber.ini.irregular.exa
 ## Density evolution
 ### Running simulations
 `de_sim` is the program to run density evolution simulation. Except for the `-h` option,  in only takes a parameter file  via the `-p`  option:
-```
+```bash
 $ bin/ber_sim -p params/de_sim.ini.example
 ```
 To simulate [`params/de.ini.example`](params/de.ini.example)
@@ -143,24 +153,24 @@ Eb/N0 corresponding to thresholds = [0.637884]
 In [[2]](#literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
 this repository contains a copy of the PEG [[4]](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
 The copy resides in the `peg` subdirectory and must be compiled separately
-```
+```bash
 $ cd peg
 $ make
 ```
 Since the peg program expects degree distributions in a slightly different format and doesn't use the `.alist` format for outputting parity check matrices, we wrote the [peg.sh](scripts/peg.sh) script
 to directly convert ensembles to `.alist` files. The script makes use of the programs [`ens2deg`](prog/ens2deg.cpp) and [`dat2alist`](prog/dat2alist.cpp) to convert intputs and outputs to the peg program. E.g., to create a parity check matrix for a length 1000 rate 1/2 code from the degree distribution `ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens`
 and save it under `codes/rate0.50_dv02-17_dc08-09_lut_q4_N1000.alist`,
-```
+```bash
 $ scripts/peg.sh 500 1000 codes/rate0.50_dv02-17_dc08-09_lut_q4_N1000.alist ensembles/rate0.50_dv02-17_dc08-09_lut_q4.ens
 ```
 
 ## Optimizing the reuse pattern of LUTs
 In general, every iteration of a LUT decoder implements different LUTs. LUTs can be reused for more than one iteration, however, the pattern of reuse must be carefully designed.
 We provide the [`reuse_vec_opt`](prog/reuse_vec_opt.cpp) program to do this:
-```
+```bash
 $ bin/reuse_vec_opt --help
     Called program via
-    ./osx/build/osx_xcode/LDPC_LUT/Build/Products/Debug/reuse_vec_opt --help
+    reuse_vec_opt --help
     OPTIONS:
         -m [ --min-approx ]                         Approximate Check Node Updates
         --quant-bits-msg arg (=4)                   Number of quantization bits for messages

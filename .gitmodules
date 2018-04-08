@@ -1,7 +1,7 @@
 [submodule "itpp"]
 	path = itpp
-	url = ssh://git@github.com:mmeidlinger/itpp.git
+	url = ../itpp.git
 	branch = lut_ldpc
 [submodule "lut_ldpc_vhdl"]
 	path = lut_ldpc_vhdl
-	url = ssh://git@github.com:mmeidlinger/lut_ldpc_vhdl.git 
+	url = ../lut_ldpc_vhdl.git 
