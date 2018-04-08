@@ -7,21 +7,21 @@ Consequently, the LUT decoders can easily be integrated into more complex commun
 # Installation
 
 ## Requirements
+The [boost C++ libraries](http://www.boost.org/) are used for file system abstraction and program I/O.
+[IT++](http://itpp.sourceforge.net/) is included via a submodlue because we had to do some patching to get access to internals of its classes.
+In order to successfully compile with IT++, you require its dependencies that are FFTW3, LAPACK an BLAS, cf. [http://itpp.sourceforge.net/4.3.1/](http://itpp.sourceforge.net/4.3.1/). Often, those packages are included with your OS already, but usually as dynammically linked libraries.
+
 The program has been tested on MacOSX and Linux, but with minor modification, will most likely also run on Windows.
-The instructions here refer to a linux install.
-Go ahead and install all dependencies.
-On modern Linux distributions you can fetch all neccesary required libraries using a package manager. E.g., un Ubuntu you can
+The following instructions  refer to a Linux install.
+
+## Installing Dependencies
+On modern Linux distributions you can fetch all neccesary software to build LUT LDPC and required libraries using a package manager. E.g., on Ubuntu you can
+install them via
 ```bash
 $ sudo apt-get install git build-essential cmake libboost-all-dev libfftw3-dev liblapack-dev libblas-dev
 ```
 
-Other than the source code in this repository and its submodules, you need the [boost C++ libraries](http://www.boost.org/).
-
-
-[IT++](http://itpp.sourceforge.net/) is included via a submodlue because we had to do some patching to get access to internals of its classes.
-In order to successfully compile with IT++, you require its dependencies that are FFTW3, LAPACK an BLAS, cf. [http://itpp.sourceforge.net/4.3.1/](http://itpp.sourceforge.net/4.3.1/). Often, those packages are included with your OS already, but usually as dynammically linked libraries. For static archives,
-you can install develepoment versions of those packages similar as demonstrated above for the case of the boost libraries.
-
+## Cloning and Building
 We favoured static over dynamic linking for portability, as we ran the compiled binaries on an inhomogeneous cluster of Linux hosts.
 Dynamically linked versions could be obtained by changing the [Makefile](./Makefile) appropriately.
 
@@ -77,7 +77,7 @@ and for each SNR point (`SNRdB    = 0:.5:4`) , at most 100 frames are simulated 
 
 So running
 ```bash
-$ prog/ber_sim -p params/ber_sim.irregular.ini.example
+$ bin/ber_sim -p params/ber.ini.irregular.example
 ```
 Produces
 ```
