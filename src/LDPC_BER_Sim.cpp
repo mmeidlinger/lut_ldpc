@@ -123,7 +123,6 @@ void LDPC_BER_Sim::run(){
 
     // Initialize clock to save run time
     std::clock_t start;
-    double duration;
     start = std::clock();
 
     // Initialize random seed

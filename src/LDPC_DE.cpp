@@ -356,8 +356,7 @@ bvec LDPC_DE_LUT::evolve_adaptive_reuse(double thr, vec& Pe_trace, double rel_in
     for(ii=0; ii<maxiter_de-1; ii++){
         // Convergence check
         Pe = sum(pmf_var2chk.left(Nq_Msg_vec(ii)/2) );
-        double rel_decrease = (Pe_old-Pe)/Pe_old;
-        it_info_debug("Iteration " << ii << " Pe= " << Pe << ", rel_decrease = " << rel_decrease);
+        it_info_debug("Iteration " << ii << " Pe= " << Pe << ", rel_decrease = " << (Pe_old-Pe)/Pe_old);
         if(Pe < Pe_max)
             break; 
         if(Pe <= Pe_old) Pe_old = Pe;

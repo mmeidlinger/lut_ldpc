@@ -38,18 +38,20 @@ static const int LUT_LDPC_binary_file_version = 1;
 // LDPC_Code_LUT
 // ----------------------------------------------------------------------
 LDPC_Code_LUT::LDPC_Code_LUT():
+    initial_message_mode(CONT),
     H_defined(false),
     G_defined(false),
     LUTs_defined(false),
     max_iters(0),
     psc(true),
-    pisc(false)
+    pisc(false),
+    output_verbosity(0)
 {}
 
 LDPC_Code_LUT::LDPC_Code_LUT(const LDPC_Parity* const H,
                              LDPC_Generator* const G,
                              bool perform_integrity_check):
-H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0), initial_message_mode(CONT)
+initial_message_mode(CONT), H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0)
 {
     
     set_code(H, G, perform_integrity_check);
@@ -64,7 +66,7 @@ LDPC_Code_LUT::LDPC_Code_LUT(const LDPC_Parity* const H_,
                      vec qb_Msg_,
                      LDPC_Generator* const G_,
                      bool perform_integrity_check):
-H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0), initial_message_mode(CONT)
+initial_message_mode(CONT), H_defined(false), G_defined(false), LUTs_defined(false), output_verbosity(0)
 {
     
     

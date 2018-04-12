@@ -193,7 +193,10 @@ void de_sim_lut(const boost::property_tree::ptree& param_tree)
         Array<Array<LUT_Tree> > var_luts;
         Array<Array<LUT_Tree> > chk_luts;
         
-        int Nq_msg, Nq_cha, maxiter_de, reuse_iters;
+        int Nq_msg=0;
+        int Nq_cha=0;
+        int maxiter_de=0;
+        int reuse_iters=0;
         
         
         if(maxiter_de_vec.size() == num_threads){
@@ -292,7 +295,8 @@ void de_sim_lut(const boost::property_tree::ptree& param_tree)
     vec lam2stable_vec = zeros(threshold_vec.length());
     vec rho = ens.get_chk_degree_dist();
     for(int nn=0; nn< num_threads; nn++){
-        int Nq_msg, Nq_cha;
+        int Nq_msg=0;
+        int Nq_cha=0;
         if(maxiter_de_vec.size() == num_threads){
             Nq_msg = qbits(0,1);
             Nq_cha = qbits(0,0);
