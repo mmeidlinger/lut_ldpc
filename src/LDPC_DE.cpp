@@ -1535,7 +1535,7 @@ double lut_ldpc::get_lam2stable_qbp_iterative(double sig, vec rho, int Nq_Cha, d
     double len_rho = length(rho);
     double rho_dev_eval_one = sum(elem_mult(rho, linspace(1, len_rho, len_rho)));
 
-    double e_to_r;
+    double e_to_r = 0;
     double e_to_r_old = std::numeric_limits<double>::min();
     
     ofstream myfile("lam2_trace_qbp4bit_iter_rich.txt");

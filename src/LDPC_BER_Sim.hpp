@@ -57,7 +57,7 @@ namespace lut_ldpc{
 class LDPC_BER_Sim_Results{
 public:
     //! Default constructor
-    LDPC_BER_Sim_Results(){}
+    LDPC_BER_Sim_Results(): runtime(0){}
     //! Constructor taking basic LDPC code parameters
     LDPC_BER_Sim_Results(int nvar, int nchk): ldpc_nvar(nvar), ldpc_nchk(nchk)
         {ldpc_code_rate = 1.0- (double)nchk/nvar;}
