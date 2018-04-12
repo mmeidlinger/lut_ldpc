@@ -4,6 +4,9 @@ build
 results
 src/gitversion.cpp
 include
+osx/LDPC_LUT.xcodeproj/project.xcworkspace/xcuserdata/
+osx/LDPC_LUT.xcodeproj/xcuserdata
+stimuli.txt
 
 # This might be created by itpp make install
 share

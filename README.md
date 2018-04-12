@@ -207,7 +207,7 @@ In order to generate a decoder object and some input-output pairs run
 ```bash
 $ bin/ber_sim -p params/ber.ini.regular.example > stimuli.txt
 ```
-This will simulate 20 frame per SNR value and create the decoder object  `results/RES_N2048_R0.841309_maxIter8_zcw1_frames20_minLUT/lut_codec.it`. Furthermore,  pairs of decoder inputs and corresponding decoder outputs are written to the text file `stimuli.txt`.
+This will simulate 20 frame per SNR value and create the decoder object  `results/RES_N2048_R0.841309_maxIter8_zcw0_frames20_minLUT/lut_codec.it`. Furthermore,  pairs of decoder inputs and corresponding decoder outputs are written to the text file `stimuli.txt`.
 
 The decoder object  `lut_codec.it` can then be used as an input to generate corresponding VHDL, while the pairs in `stimuli.txt` can be used to verify the correctnes of the resulting VHDL against the simulation model.
 

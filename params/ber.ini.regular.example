@@ -51,7 +51,7 @@
 [LDPC]
    parity_filename = rate0.84_reg_v6c32_N2048
 ;  Wether a Generator matrix is used to encode random datawords or the all zero word is sent
-   zero_codeword   = true 
+   zero_codeword   = false 
 ;  Wether the Generator Matrix and the corresponding (possibly permuted) Parity Check Matrix that are generated
 ;  if LDPC.zero_codeword = true are saved to disk, potentially overwriting the original Parity check .alist file.
 ;   save_permuted = false
