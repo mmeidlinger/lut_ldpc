@@ -1,6 +1,6 @@
 # Introduction
 
-LUT LDPC is a collection of software tools to design and test LDPC decoders based on discrete message passing decoding
+LUT-LDPC is a collection of software tools to design and test LDPC decoders based on discrete message passing decoding
 using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#literature). It is mainly written in C++ and relies  on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
 Consequently, the LUT decoders can easily be integrated into more complex communication systems including concatenated coding and/or modulation.
 
@@ -15,7 +15,7 @@ The program has been tested on MacOSX and Linux, but with minor modification, wi
 The following instructions  refer to a Linux install.
 
 ## Installing Dependencies
-On modern Linux distributions you can fetch all neccesary software to build LUT LDPC and required libraries using a package manager. E.g., on Ubuntu you can
+On modern Linux distributions you can fetch all neccesary software to build LUT-LDPC and required libraries using a package manager. E.g., on Ubuntu you can
 install them via
 ```bash
 $ sudo apt-get install git build-essential cmake libboost-all-dev libfftw3-dev liblapack-dev libblas-dev
@@ -57,7 +57,7 @@ OPTIONS:
 ```
 Most importantly, the `-p` option specifies the parameter file to configure the simulation. An example of such a files is given below, which is a stripped down version of
 [`params/ber.ini.irregular.example`](params/ber.ini.irregular.example):
-```
+```INI
 [Sim]
    SNRdB    = 0:.5:4
    Nframes  = 1e2
@@ -79,7 +79,7 @@ So running
 ```bash
 $ bin/ber_sim -p params/ber.ini.irregular.example
 ```
-Produces
+produces
 ```
  results/
     RES_N500_R0.5_maxIter50_zcw0_frames100_minLUT/
@@ -106,7 +106,7 @@ Have a look at [`params/ber.ini.irregular.example`](params/ber.ini.irregular.exa
 $ bin/ber_sim -p params/de_sim.ini.example
 ```
 To simulate [`params/de.ini.example`](params/de.ini.example)
-```
+```INI
 [Sim]
 thr_min = 1e-7
 thr_prec = 1e-5
@@ -151,7 +151,7 @@ Eb/N0 corresponding to thresholds = [0.637884]
 
 ## Generating codes
 In [[2]](#literature), we found out that for irregular codes under LUT decoding, degree distributions must be optimized. To generate codes from optimized degree distributions,
-this repository contains a copy of the PEG [[4]](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
+this repository contains a copy of the PEG [[5](#literature) program which is freely available at http://www.inference.org.uk/mackay/PEG_ECC.html
 The copy resides in the `peg` subdirectory and must be compiled separately
 ```bash
 $ cd peg
@@ -200,8 +200,8 @@ C.f.  [codes](codes/README.md),  [ensembles](ensembles/README.md) and  [trees](t
 
 
 # Creating VHDL Code for an Unrolled Decoder
-Using the MATLAB scripts of the [LUT-LDPC-VHDL](lut_ldpc_vhdl/README.md) submodule, the VHDL source code for an unrolled decoder (cf. [[3-4]](#literature))
-can be generated based on the decoders exported by LUT LDPC C++ program.
+Using the MATLAB scripts of the [LUT-LDPC-VHDL](https://github.com/mmeidlinger/lut_ldpc_vhdl) submodule, the VHDL source code for an unrolled decoder (cf. [[3-4]](#literature))
+can be generated based on the decoders exported by LUT-LDPC C++ program.
 In order to generate a decoder object and some input-output pairs run
 
 ```bash
@@ -214,7 +214,7 @@ The decoder object  `lut_codec.it` can then be used as an input to generate corr
 For more details, cf.  the [documentation of LUT-LDPC-VHDL](lut_ldpc_vhdl/README.md)
 
 # Writing your own programs
-The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
+The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT-LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
 
 
 
