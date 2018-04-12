@@ -59,7 +59,7 @@ public:
     //! Default constructor
     LDPC_BER_Sim_Results(): runtime(0){}
     //! Constructor taking basic LDPC code parameters
-    LDPC_BER_Sim_Results(int nvar, int nchk): ldpc_nvar(nvar), ldpc_nchk(nchk)
+    LDPC_BER_Sim_Results(int nvar, int nchk): ldpc_nvar(nvar), ldpc_nchk(nchk), runtime(0)
         {ldpc_code_rate = 1.0- (double)nchk/nvar;}
     //! Wrapper for writing results to .it file. Generates filename and handles file and directory creation
     void save();
