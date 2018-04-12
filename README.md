@@ -211,7 +211,7 @@ This will simulate 20 frame per SNR value and create the decoder object  `result
 
 The decoder object  `lut_codec.it` can then be used as an input to generate corresponding VHDL, while the pairs in `stimuli.txt` can be used to verify the correctnes of the resulting VHDL against the simulation model.
 
-For more details, cf.  the [documentation of LUT-LDPC-VHDL](lut_ldpc_vhdl/README.md)
+For more details, cf.  the [documentation of LUT-LDPC-VHDL](https://github.com/mmeidlinger/lut_ldpc_vhdl)
 
 # Writing your own programs
 The [Makefile](./Makefile) is configured to compile one executable per source file in the `prog` directory and link it to all object files of LUT-LDPC. Try adding [this](trees/README.md) example as `prog/tree_example.cpp` and rebuild and install using `make && make install`. This should give you the  program `bin/tree_example`.
@@ -229,7 +229,7 @@ If you use this software for your academic research, please consider referencing
 [[3]  A. Balatsoukas-Stimming, M. Meidlinger, R. Ghanaatian, G. Matz, and A. Burg, “A fully-unrolled LDPC decoder based on quantized message passing,” in Proc. SiPS 2015, Hang Zhou, China, 10 2015.
 ](http://ieeexplore.ieee.org/abstract/document/7345024/)
 
-[[4] R. Ghanaatian, A. Balatsoukas-Stimming, C. Mu ̈ller, M. Meidlinger, G. Matz, A. Teman, and A. Burg, “A 588 Gbps LDPC decoder based on finite-alphabet message passing,” IEEE Trans. VLSI Systems, vol. 26, no. 2, pp. 329–340, 2 2018.
+[[4] R. Ghanaatian, A. Balatsoukas-Stimming, C. Müller, M. Meidlinger, G. Matz, A. Teman, and A. Burg, “A 588 Gbps LDPC decoder based on finite-alphabet message passing,” IEEE Trans. VLSI Systems, vol. 26, no. 2, pp. 329–340, 2 2018.
 ](http://ieeexplore.ieee.org/document/8113527/)
 
 [[5] X.-Y. Hu, E. Eleftheriou, and D. Arnold, “Regular and irregular progressive edge-growth tanner graphs,” IEEE Trans. Information Theory, vol. 51, no. 1, pp. 386–398, Jan. 2005.
