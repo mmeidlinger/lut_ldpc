@@ -1,3 +1,25 @@
+   * [Introduction](#introduction)
+   * [Quickstart](#quickstart)
+   * [Installation](#installation)
+      * [Requirements](#requirements)
+      * [Installing Dependencies](#installing-dependencies)
+      * [Cloning and Building](#cloning-and-building)
+   * [Usage](#usage)
+      * [Designing LUT Decoders and testing Bit Error rate performance](#designing-lut-decoders-and-testing-bit-error-rate-performance)
+         * [Running the simulation](#running-the-simulation)
+         * [Evaluating the results](#evaluating-the-results)
+         * [Comparing to other decoders](#comparing-to-other-decoders)
+      * [Density evolution](#density-evolution)
+         * [Running simulations](#running-simulations)
+      * [Generating codes](#generating-codes)
+      * [Optimizing the reuse pattern of LUTs](#optimizing-the-reuse-pattern-of-luts)
+   * [Codes, Ensembles and Trees](#codes-ensembles-and-trees)
+   * [Creating VHDL Code for an Unrolled Decoder](#creating-vhdl-code-for-an-unrolled-decoder)
+   * [Writing your own programs](#writing-your-own-programs)
+   * [Referencing](#referencing)
+   * [Literature](#literature)
+
+
 # Introduction
 
 LUT-LDPC is a collection of software tools to design and test LDPC decoders based on discrete message passing decoding
