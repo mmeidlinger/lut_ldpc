@@ -4,6 +4,11 @@ LUT-LDPC is a collection of software tools to design and test LDPC decoders base
 using lookup tables (LUTs), referred to as LUT decoders, cf. [[1]](#literature). It is mainly written in C++ and relies  on the [IT++](http://itpp.sourceforge.net/) for abstracting basic linear algebra and signal processing operations.
 Consequently, the LUT decoders can easily be integrated into more complex communication systems including concatenated coding and/or modulation.
 
+# Quickstart
+All necessary steps to download and install LUT-LDPC as well as LUT-LDPC-VHDL and perform a reference decoder design
+on Ubuntu 17.10 are documented in the [Quickstart guide](https://github.com/mmeidlinger/lut_ldpc/blob/master/QUICKSTART.md).
+More detailed explanations of those steps are provide in the following sections.
+
 # Installation
 
 ## Requirements
