@@ -287,6 +287,15 @@ int LDPC_Code_LUT::lut_decode(const ivec LLRin_cha, const ivec LLRin_msg,  bvec&
             edge_idx++;
         }
     }
+    
+    // Print initial VN-to-CN messages
+    if(output_verbosity>1){
+        std::cout << "Initial VN-to-CN messages: " << std::endl;
+        for (int ee = 0; ee < num_edges; ee++) {
+            std::cout << std::setfill('0') << std::setw(8) << std::uppercase << std::hex << msgs(ee) << "  ";
+        }
+        std::cout << std::endl;
+    }
 
     int ii;
     for(ii=0; ii<max_iters; ii++){
@@ -299,6 +308,14 @@ int LDPC_Code_LUT::lut_decode(const ivec LLRin_cha, const ivec LLRin_msg,  bvec&
                 chk_update_lut(cc, edge_idx, ii);
             edge_idx += dc_vec(cc);
         }
+        if(output_verbosity>2){ // Print CN-to-VN messages
+            std::cout << "CN-to-VN messages after CN update at iteration " << ii << ":" << std::endl;
+            for (int ee = 0; ee < num_edges; ee++) {
+                std::cout << std::setfill('0') << std::setw(8) << std::uppercase << std::hex << msgs(ee) << "  ";
+            }
+            std::cout << std::endl;
+        }
+        
         // Step 2: VN update
         if(ii!= max_iters-1){
             edge_idx = 0;
@@ -310,6 +327,13 @@ int LDPC_Code_LUT::lut_decode(const ivec LLRin_cha, const ivec LLRin_msg,  bvec&
             if (psc && syndrome_check(Nq_Msg(ii+1),LLRout)) {
                 return ii+1;
             }
+        }
+        if(output_verbosity>1){ // Print VN-to-CN messages
+            std::cout << "VN-to-CN messages after VN update at iteration " << ii << ":" << std::endl;
+            for (int ee = 0; ee < num_edges; ee++) {
+                std::cout << std::setfill('0') << std::setw(8) << std::uppercase << std::hex << msgs(ee) << "  ";
+            }
+            std::cout << std::endl;
         }
     }
     // Decision node step
