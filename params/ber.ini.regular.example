@@ -102,9 +102,9 @@
 ;     2. file: Load the tree structure frome a file within the 'trees' directory
 ;     3. auto_bin_high: Automatically generate a binary tree of maximum height
 ;     4. root_only: All leaf nodes are attached directly to the root node
-;   tree_mode = auto_bin_balanced
+   tree_mode = file
 ;  Where to look for tree files
-   trees_dir = file 
+   trees_dir = trees 
    trees_filename = 6_32_wide.ini
 ;  Set this to an integer>0 to print pairs of decoder inputs (quantized channel LLRs in hexadecimal format) and outputs (pattern of zeros and ones).
 ;  Set it >1 to output also VN messages after each iteration and >2 to also include CN messages after each iteration (hex format, following the VN ordering)
