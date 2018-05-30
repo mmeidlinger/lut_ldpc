@@ -32,12 +32,18 @@ make install
 
 ## Create preconfigured LDPC decoder object
 Design a LDPC decoder for the 10GBaseT code and run a short Bit Error Rate (BER) simulation, saving pairs of decoder inputs and outputs
-into the text file `stimuli.txt`, cf. [here](https://github.com/mmeidlinger/lut_ldpc/blob/master/README.md#designing-lut-decoders-and-testing-bit-error-rate-performance) for more details. Those pairs can later be used to verify the functionality of
-the VHDL decoder against the reference simulation.
+into the text file `ber_sim_output.txt`, cf. [here](https://github.com/mmeidlinger/lut_ldpc/blob/master/README.md#designing-lut-decoders-and-testing-bit-error-rate-performance) for more details.
 ```shell
-bin/ber_sim -p params/ber.ini.regular.example > stimuli.txt
+bin/ber_sim -p params/ber.ini.regular.example > ber_sim_output.txt
 ```
-The resulting decoder object is saved under `results/RES_N2048_R0.841309_maxIter8_zcw0_frames20_minLUT/lut_codec.it`
+The resulting decoder object is saved under `results/RES_N2048_R0.841309_maxIter8_zcw0_frames20_minLUT/lut_codec.it`.
+
+From the output file `ber_sim_output.txt`, we filter out decoder input and output combinations in order to later verify the functionality of
+the VHDL decoder against the reference simulation:
+```shell
+awk 'c&&c--;/Stimuli Pair/{c=2}' ber_sim_output.txt > lut_ldpc_vhdl/ModelSim/OUT/stimuli.txt
+```
+
 
 ## Create VHDL
 Create VHDL code for an unrolled decoder based on the software decoder object produced by the above BER simulation:
