@@ -10,7 +10,7 @@ For an example on how to setup a decoder using such strings, cf. [tree_file_exam
 
 # Writing LUT trees
 LUT trees can be easily exported  using the `<<` operator. E.g., the following simple program
-```
+```cpp
 #include <itpp/itbase.h>
 #include "LUT_Tree.hpp"
 
